@@ -15,8 +15,9 @@ import FoundationModelsSkills
 /// library.
 public struct CatalogGenerator: Sendable {
     /// The name of the file that holds the release version of the catalogs. It
-    /// is the one source of the version.
-    public static let versionFileName = "VERSION"
+    /// is the one source of the version, thus a test reads the name here rather
+    /// than writing the name a second time.
+    internal static let versionFileName = "VERSION"
 
     /// The line break that ends each generated file.
     private static let lineBreak = "\n"

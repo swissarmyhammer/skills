@@ -1,4 +1,4 @@
-import CatalogGenerator
+@testable import CatalogGenerator
 import CryptoKit
 import Foundation
 import Testing
@@ -10,14 +10,16 @@ import Testing
 /// added, dropped, or renamed without a run of `scripts/generate-catalogs`
 /// fails this suite, and thus fails CI, instead of reaching a user as a catalog
 /// that does not name the skill.
+///
+/// A comparison with the generator output finds drift, but it cannot find a
+/// wrong value: a changed value passes after one run of the generator. Thus
+/// each published value also has a test that holds it equal to a literal
+/// written here, which is a truth outside the generator.
 @Suite("Catalog sync")
 struct CatalogSyncTests {
     /// The name of the file of a skill. A folder of the layer root is a skill
     /// when it holds this file.
     private static let skillFileName = "SKILL.md"
-
-    /// The name of the file that holds the release version of the catalogs.
-    private static let versionFileName = "VERSION"
 
     /// The opening text of the `digest` of a discovery index entry.
     private static let digestPrefix = "sha256:"
@@ -25,15 +27,56 @@ struct CatalogSyncTests {
     /// The format of one byte of a digest: two lower-case hexadecimal digits.
     private static let digestByteFormat = "%02x"
 
-    /// The one plugin that the Claude catalog holds (marketplace.md 3.3).
+    /// The one plugin that each catalog holds (marketplace.md 3.3).
     private static let expectedPluginCount = 1
+
+    /// The name of this marketplace, which each catalog repeats.
+    private static let expectedMarketplaceName = "swissarmyhammer-skills"
+
+    /// The owner of this marketplace.
+    private static let expectedOwnerName = "swissarmyhammer"
+
+    /// The name of the one plugin of this marketplace.
+    private static let expectedPluginName = "swissarmyhammer"
+
+    /// The folder of the files of the plugin: the repository root itself.
+    private static let expectedPluginSource = "./"
+
+    /// Whether the plugin needs a `plugin.json` file. It does not, because it
+    /// lists its skills itself.
+    private static let expectedPluginIsStrict = false
+
+    /// The kind of a plugin source that names a folder of this repository.
+    ///
+    /// A client takes any other kind as a remote source, and it then skips the
+    /// plugin. Thus a changed kind would drop every skill of this marketplace
+    /// with no message to a user.
+    private static let expectedLocalSourceKind = "local"
+
+    /// The name of the one layer root of this marketplace.
+    private static let skillsFolderName = "skills"
+
+    /// The folder that holds the skills of the plugin, as the Codex plugin
+    /// manifest writes it.
+    private static let expectedSkillsFolder = "./\(skillsFolderName)"
+
+    /// The form of an artifact that is one `SKILL.md` file.
+    private static let expectedSkillFileType = "skill-md"
+
+    /// The release version of the fixture repository that
+    /// ``generationIsDeterministic()`` builds.
+    private static let fixtureVersion = "9.9.9"
+
+    /// The names of the skills of that fixture library, in the order the
+    /// fixture writes them, which is not name order.
+    private static let fixtureSkillNames = ["beta", "alpha"]
 
     /// The path of one skill folder, as the Claude catalog writes it.
     ///
     /// - Parameter name: The name of the skill.
     /// - Returns: The path, relative to the source of the plugin.
     private static func pluginSkillPath(name: String) -> String {
-        "./skills/\(name)"
+        "\(expectedSkillsFolder)/\(name)"
     }
 
     /// The URL of the `SKILL.md` of one skill, as the discovery index writes
@@ -42,7 +85,7 @@ struct CatalogSyncTests {
     /// - Parameter name: The name of the skill.
     /// - Returns: The URL, relative to the root of the site.
     private static func indexSkillURL(name: String) -> String {
-        "/skills/\(name)/\(skillFileName)"
+        "/\(skillsFolderName)/\(name)/\(skillFileName)"
     }
 
     /// The files that the generator writes from the checked-in skill folders.
@@ -60,6 +103,29 @@ struct CatalogSyncTests {
     /// - Throws: An error when the file is not there, or cannot be read.
     private static func committedFile(atPath path: String) throws -> Data {
         try Data(contentsOf: RepositoryLayout.repositoryRoot().appendingPathComponent(path))
+    }
+
+    /// Decodes one committed file into the model of this test target.
+    ///
+    /// - Parameters:
+    ///   - path: The path of the file, relative to the repository root.
+    ///   - model: The model to decode.
+    /// - Returns: The decoded value.
+    /// - Throws: An error when the file cannot be read, or cannot be decoded.
+    private static func committedCatalog<Model: Decodable>(
+        atPath path: String, as model: Model.Type
+    ) throws -> Model {
+        try JSONDecoder().decode(model, from: committedFile(atPath: path))
+    }
+
+    /// The release version of the repository, from the one source of it.
+    ///
+    /// - Returns: The version, with no leading and no trailing space.
+    /// - Throws: An error when the version file cannot be read.
+    private static func releaseVersion() throws -> String {
+        let text = try String(
+            decoding: committedFile(atPath: CatalogGenerator.versionFileName), as: UTF8.self)
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// The names of the skill folders on disk, which is the truth that every
@@ -92,6 +158,59 @@ struct CatalogSyncTests {
         return digestPrefix + hexadecimal
     }
 
+    /// The `SKILL.md` text of one skill of the fixture library.
+    ///
+    /// - Parameter name: The name of the skill.
+    /// - Returns: The text, with the frontmatter the loader of the client asks
+    ///   for.
+    private static func fixtureSkillFile(name: String) -> String {
+        """
+        ---
+        name: \(name)
+        description: The \(name) skill of the fixture library.
+        ---
+
+        # \(name)
+        """
+    }
+
+    /// Builds a repository that holds a `VERSION` file and a small library.
+    ///
+    /// The fixture lets a test write the catalogs two times without a change of
+    /// the checked-in files of this repository.
+    ///
+    /// - Returns: The root of the new repository.
+    /// - Throws: An error when a folder or a file cannot be written.
+    private static func makeFixtureRepository() throws -> URL {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let skillsRoot = root.appendingPathComponent(skillsFolderName, isDirectory: true)
+        for name in fixtureSkillNames {
+            let folder = skillsRoot.appendingPathComponent(name, isDirectory: true)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try Data(fixtureSkillFile(name: name).utf8)
+                .write(to: folder.appendingPathComponent(skillFileName))
+        }
+        try Data(fixtureVersion.utf8)
+            .write(to: root.appendingPathComponent(CatalogGenerator.versionFileName))
+        return root
+    }
+
+    /// Reads the files of one repository back from disk.
+    ///
+    /// - Parameters:
+    ///   - paths: The paths of the files, relative to the repository root.
+    ///   - root: The root of the repository.
+    /// - Returns: The bytes of each file, by path.
+    /// - Throws: An error when a file cannot be read.
+    private static func filesOnDisk(atPaths paths: [String], inRepositoryAt root: URL) throws -> [String: Data] {
+        var files: [String: Data] = [:]
+        for path in paths {
+            files[path] = try Data(contentsOf: root.appendingPathComponent(path))
+        }
+        return files
+    }
+
     /// Every committed catalog file holds the bytes that the generator writes
     /// now.
     ///
@@ -107,22 +226,44 @@ struct CatalogSyncTests {
         }
     }
 
-    /// The generator writes the same bytes each time it runs.
+    /// The generator writes the same bytes on disk each time it runs.
     ///
-    /// Thus a second run of `scripts/generate-catalogs` changes no file, and a
-    /// difference in the working tree is always a difference of the library.
-    @Test("The generator writes the same bytes on a second run")
+    /// The test writes a fixture repository two times and reads each file back,
+    /// thus a value that is not stable from run to run fails here. A comparison
+    /// of two return values of `generate()` could not fail, because the keys are
+    /// sorted and the skills are in name order by construction.
+    @Test("The generator writes the same files on a second run")
     func generationIsDeterministic() throws {
-        let first = try Self.generatedFiles()
-        let second = try Self.generatedFiles()
+        let root = try Self.makeFixtureRepository()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let generator = CatalogGenerator(repositoryRoot: root)
+        let firstPaths = try generator.write().map(\.path)
+        let first = try Self.filesOnDisk(atPaths: firstPaths, inRepositoryAt: root)
+        let secondPaths = try generator.write().map(\.path)
+        let second = try Self.filesOnDisk(atPaths: secondPaths, inRepositoryAt: root)
+        #expect(firstPaths == secondPaths)
         #expect(first == second)
+    }
+
+    /// The Claude catalog names this marketplace and its one plugin.
+    @Test("The Claude catalog names the marketplace and its local plugin")
+    func claudeCatalogNamesTheMarketplace() throws {
+        let catalog = try Self.committedCatalog(
+            atPath: ClaudeCatalog.path, as: CommittedClaudeCatalog.self)
+        #expect(catalog.name == Self.expectedMarketplaceName)
+        #expect(catalog.owner.name == Self.expectedOwnerName)
+        #expect(catalog.plugins.count == Self.expectedPluginCount)
+        let plugin = try #require(catalog.plugins.first)
+        #expect(plugin.name == Self.expectedPluginName)
+        #expect(plugin.source == Self.expectedPluginSource)
+        #expect(plugin.strict == Self.expectedPluginIsStrict)
     }
 
     /// The one plugin of the Claude catalog lists every skill folder one time.
     @Test("The Claude plugin lists every skill folder exactly once")
     func claudePluginListsEverySkillOnce() throws {
-        let catalog = try JSONDecoder().decode(
-            ClaudeCatalog.self, from: Self.committedFile(atPath: ClaudeCatalog.path))
+        let catalog = try Self.committedCatalog(
+            atPath: ClaudeCatalog.path, as: CommittedClaudeCatalog.self)
         #expect(catalog.plugins.count == Self.expectedPluginCount)
         let plugin = try #require(catalog.plugins.first)
         let expected = try Self.skillFolderNames().map(Self.pluginSkillPath)
@@ -130,12 +271,45 @@ struct CatalogSyncTests {
         #expect(Set(plugin.skills).count == plugin.skills.count)
     }
 
+    /// The Codex catalog holds one plugin with a `local` source at the
+    /// repository root.
+    ///
+    /// A client takes a source of any other kind as a remote source, and it
+    /// then skips the plugin. Thus a wrong kind, or a wrong path, would give a
+    /// user a marketplace with no skill in it.
+    @Test("The Codex catalog holds one local plugin at the repository root")
+    func codexCatalogHoldsOneLocalPlugin() throws {
+        let catalog = try Self.committedCatalog(
+            atPath: CodexCatalog.path, as: CommittedCodexCatalog.self)
+        #expect(catalog.name == Self.expectedMarketplaceName)
+        #expect(catalog.plugins.count == Self.expectedPluginCount)
+        let plugin = try #require(catalog.plugins.first)
+        #expect(plugin.name == Self.expectedPluginName)
+        #expect(plugin.source.kind == Self.expectedLocalSourceKind)
+        #expect(plugin.source.path == Self.expectedPluginSource)
+    }
+
+    /// The Codex plugin manifest names the plugin, the skills folder, and the
+    /// release version.
+    ///
+    /// The skills folder is the one layer root of this repository. A wrong
+    /// folder would give a reader no skill at all.
+    @Test("The Codex plugin manifest names the skills folder and the version")
+    func codexPluginManifestNamesTheSkillsFolder() throws {
+        let manifest = try Self.committedCatalog(
+            atPath: CodexPluginManifest.path, as: CommittedCodexPluginManifest.self)
+        let version = try Self.releaseVersion()
+        #expect(manifest.name == Self.expectedPluginName)
+        #expect(manifest.skills == Self.expectedSkillsFolder)
+        #expect(manifest.version == version)
+    }
+
     /// The discovery index names every skill folder, and each entry carries the
     /// URL and the digest of its own `SKILL.md`.
     @Test("Each discovery index entry carries the digest of its SKILL.md")
     func indexDigestsMatchTheSkillFiles() throws {
-        let index = try JSONDecoder().decode(
-            DiscoveryIndex.self, from: Self.committedFile(atPath: DiscoveryIndex.path))
+        let index = try Self.committedCatalog(
+            atPath: DiscoveryIndex.path, as: CommittedDiscoveryIndex.self)
         let names = try Self.skillFolderNames()
         #expect(index.skills.map(\.name) == names)
         for entry in index.skills {
@@ -143,6 +317,7 @@ struct CatalogSyncTests {
                 .appendingPathComponent(entry.name)
                 .appendingPathComponent(Self.skillFileName)
             let digest = try Self.digest(ofFileAt: file)
+            #expect(entry.type == Self.expectedSkillFileType)
             #expect(entry.url == Self.indexSkillURL(name: entry.name))
             #expect(entry.digest == digest)
         }
@@ -152,9 +327,9 @@ struct CatalogSyncTests {
     /// is the one source of the version.
     @Test("The Claude catalog version is the VERSION file")
     func catalogVersionIsTheVersionFile() throws {
-        let catalog = try JSONDecoder().decode(
-            ClaudeCatalog.self, from: Self.committedFile(atPath: ClaudeCatalog.path))
-        let text = try String(decoding: Self.committedFile(atPath: Self.versionFileName), as: UTF8.self)
-        #expect(catalog.metadata.version == text.trimmingCharacters(in: .whitespacesAndNewlines))
+        let catalog = try Self.committedCatalog(
+            atPath: ClaudeCatalog.path, as: CommittedClaudeCatalog.self)
+        let version = try Self.releaseVersion()
+        #expect(catalog.metadata.version == version)
     }
 }

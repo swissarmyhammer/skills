@@ -7,46 +7,50 @@
 ///
 /// The catalog holds one plugin that lists every skill, with the source `./`
 /// and `strict` false. Thus the repository needs no `plugin.json` file.
-public struct ClaudeCatalog: Sendable, Hashable, Codable {
+///
+/// The generator only writes a catalog, thus the type is `Encodable` only. A
+/// test that reads a committed file decodes it with a model of its own, which
+/// is a truth outside the generator.
+internal struct ClaudeCatalog: Sendable, Hashable, Encodable {
     /// The owner of a marketplace.
-    public struct Owner: Sendable, Hashable, Codable {
+    internal struct Owner: Sendable, Hashable, Encodable {
         /// The name of the owner.
-        public let name: String
+        internal let name: String
     }
 
     /// The release metadata of a catalog.
-    public struct Metadata: Sendable, Hashable, Codable {
+    internal struct Metadata: Sendable, Hashable, Encodable {
         /// What the marketplace gives, for a person who reads a listing.
-        public let description: String
+        internal let description: String
 
         /// The release version of the catalog, which is the `VERSION` file of
         /// the repository.
-        public let version: String
+        internal let version: String
     }
 
     /// One plugin of a catalog: a named list of skills.
-    public struct Plugin: Sendable, Hashable, Codable {
+    internal struct Plugin: Sendable, Hashable, Encodable {
         /// The name of the plugin.
-        public let name: String
+        internal let name: String
 
         /// The folder of the files of the plugin, relative to the repository
         /// root.
-        public let source: String
+        internal let source: String
 
         /// Whether the plugin needs a `plugin.json` file. This plugin does not,
         /// because it lists its skills itself.
-        public let strict: Bool
+        internal let strict: Bool
 
         /// What the plugin gives.
-        public let description: String
+        internal let description: String
 
         /// The skill folders of the plugin, relative to ``source``, in name
         /// order.
-        public let skills: [String]
+        internal let skills: [String]
     }
 
     /// The path of the catalog in the repository.
-    public static let path = ".claude-plugin/marketplace.json"
+    internal static let path = ".claude-plugin/marketplace.json"
 
     /// The schema of the format, which an editor reads to check the file.
     private static let schema = "https://anthropic.com/claude-code/marketplace.schema.json"
@@ -55,19 +59,19 @@ public struct ClaudeCatalog: Sendable, Hashable, Codable {
     private static let pluginIsStrict = false
 
     /// The schema of the format.
-    public let schemaURL: String
+    internal let schemaURL: String
 
     /// The name of the marketplace.
-    public let name: String
+    internal let name: String
 
     /// The owner of the marketplace.
-    public let owner: Owner
+    internal let owner: Owner
 
     /// The release metadata of the catalog.
-    public let metadata: Metadata
+    internal let metadata: Metadata
 
     /// The plugins of the catalog: one plugin that lists every skill.
-    public let plugins: [Plugin]
+    internal let plugins: [Plugin]
 
     /// The keys of a catalog.
     private enum CodingKeys: String, CodingKey {
