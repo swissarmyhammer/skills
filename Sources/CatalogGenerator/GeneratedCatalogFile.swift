@@ -9,7 +9,10 @@ public struct GeneratedCatalogFile: Sendable, Hashable {
     public let path: String
 
     /// The bytes of the file, which end with a line break.
-    public let contents: Data
+    ///
+    /// The executable writes with ``CatalogGenerator/write()`` and reports the
+    /// path only, thus the bytes stay in the module and in its tests.
+    internal let contents: Data
 
     /// Makes the record of one generated file.
     ///

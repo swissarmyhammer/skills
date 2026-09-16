@@ -5,9 +5,16 @@
 // format written here a second time. Thus a test holds each value equal to a
 // literal of its own: a changed value in the generator fails a test, and does
 // not pass after one run of the generator.
+//
+// The path of a file is the most published value of a catalog, because a client
+// finds the file by that name. Thus each model writes its own path here as a
+// literal too, and no test takes a path from the generator.
 
 /// The Claude catalog, `.claude-plugin/marketplace.json`.
 internal struct CommittedClaudeCatalog: Decodable {
+    /// The path a client reads the Claude catalog from.
+    internal static let path = ".claude-plugin/marketplace.json"
+
     /// The owner of the marketplace.
     internal struct Owner: Decodable {
         /// The name of the owner.
@@ -50,6 +57,9 @@ internal struct CommittedClaudeCatalog: Decodable {
 
 /// The Codex catalog, `.agents/plugins/marketplace.json`.
 internal struct CommittedCodexCatalog: Decodable {
+    /// The path a client reads the Codex catalog from.
+    internal static let path = ".agents/plugins/marketplace.json"
+
     /// How a reader shows the marketplace to a person.
     internal struct Interface: Decodable {
         /// The name of the marketplace for a person who reads a listing.
@@ -92,6 +102,9 @@ internal struct CommittedCodexCatalog: Decodable {
 
 /// The Codex plugin manifest, `.codex-plugin/plugin.json`.
 internal struct CommittedCodexPluginManifest: Decodable {
+    /// The path a client reads the Codex plugin manifest from.
+    internal static let path = ".codex-plugin/plugin.json"
+
     /// The name of the plugin.
     internal let name: String
 
@@ -104,6 +117,9 @@ internal struct CommittedCodexPluginManifest: Decodable {
 
 /// The agentskills discovery index, `.well-known/agent-skills/index.json`.
 internal struct CommittedDiscoveryIndex: Decodable {
+    /// The path a client reads the discovery index from.
+    internal static let path = ".well-known/agent-skills/index.json"
+
     /// One skill of the index.
     internal struct Entry: Decodable {
         /// The name of the skill.

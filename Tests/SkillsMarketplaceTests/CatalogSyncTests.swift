@@ -71,6 +71,20 @@ struct CatalogSyncTests {
     /// fixture writes them, which is not name order.
     private static let fixtureSkillNames = ["beta", "alpha"]
 
+    /// The path of each published catalog file, in the order the generator
+    /// writes them.
+    ///
+    /// The path is the most published value of a catalog, because a client
+    /// finds the file by that name. Thus each path is a literal of the test
+    /// target, and a changed path in the generator fails this suite instead of
+    /// leaving a user with a file no client reads.
+    private static let expectedGeneratedPaths = [
+        CommittedClaudeCatalog.path,
+        CommittedCodexCatalog.path,
+        CommittedCodexPluginManifest.path,
+        CommittedDiscoveryIndex.path,
+    ]
+
     /// The path of one skill folder, as the Claude catalog writes it.
     ///
     /// - Parameter name: The name of the skill.
@@ -226,6 +240,17 @@ struct CatalogSyncTests {
         }
     }
 
+    /// The generator writes each catalog to the path a client reads.
+    ///
+    /// A comparison with the generator output cannot find a wrong path: a
+    /// changed path passes after one run of the generator, while the file a
+    /// client opens keeps its old bytes. Thus the paths are literals here.
+    @Test("The generator writes each catalog to its published path")
+    func generatedPathsArePublishedPaths() throws {
+        let paths = try Self.generatedFiles().map(\.path)
+        #expect(paths == Self.expectedGeneratedPaths)
+    }
+
     /// The generator writes the same bytes on disk each time it runs.
     ///
     /// The test writes a fixture repository two times and reads each file back,
@@ -249,7 +274,7 @@ struct CatalogSyncTests {
     @Test("The Claude catalog names the marketplace and its local plugin")
     func claudeCatalogNamesTheMarketplace() throws {
         let catalog = try Self.committedCatalog(
-            atPath: ClaudeCatalog.path, as: CommittedClaudeCatalog.self)
+            atPath: CommittedClaudeCatalog.path, as: CommittedClaudeCatalog.self)
         #expect(catalog.name == Self.expectedMarketplaceName)
         #expect(catalog.owner.name == Self.expectedOwnerName)
         #expect(catalog.plugins.count == Self.expectedPluginCount)
@@ -263,7 +288,7 @@ struct CatalogSyncTests {
     @Test("The Claude plugin lists every skill folder exactly once")
     func claudePluginListsEverySkillOnce() throws {
         let catalog = try Self.committedCatalog(
-            atPath: ClaudeCatalog.path, as: CommittedClaudeCatalog.self)
+            atPath: CommittedClaudeCatalog.path, as: CommittedClaudeCatalog.self)
         #expect(catalog.plugins.count == Self.expectedPluginCount)
         let plugin = try #require(catalog.plugins.first)
         let expected = try Self.skillFolderNames().map(Self.pluginSkillPath)
@@ -280,7 +305,7 @@ struct CatalogSyncTests {
     @Test("The Codex catalog holds one local plugin at the repository root")
     func codexCatalogHoldsOneLocalPlugin() throws {
         let catalog = try Self.committedCatalog(
-            atPath: CodexCatalog.path, as: CommittedCodexCatalog.self)
+            atPath: CommittedCodexCatalog.path, as: CommittedCodexCatalog.self)
         #expect(catalog.name == Self.expectedMarketplaceName)
         #expect(catalog.plugins.count == Self.expectedPluginCount)
         let plugin = try #require(catalog.plugins.first)
@@ -297,7 +322,7 @@ struct CatalogSyncTests {
     @Test("The Codex plugin manifest names the skills folder and the version")
     func codexPluginManifestNamesTheSkillsFolder() throws {
         let manifest = try Self.committedCatalog(
-            atPath: CodexPluginManifest.path, as: CommittedCodexPluginManifest.self)
+            atPath: CommittedCodexPluginManifest.path, as: CommittedCodexPluginManifest.self)
         let version = try Self.releaseVersion()
         #expect(manifest.name == Self.expectedPluginName)
         #expect(manifest.skills == Self.expectedSkillsFolder)
@@ -309,7 +334,7 @@ struct CatalogSyncTests {
     @Test("Each discovery index entry carries the digest of its SKILL.md")
     func indexDigestsMatchTheSkillFiles() throws {
         let index = try Self.committedCatalog(
-            atPath: DiscoveryIndex.path, as: CommittedDiscoveryIndex.self)
+            atPath: CommittedDiscoveryIndex.path, as: CommittedDiscoveryIndex.self)
         let names = try Self.skillFolderNames()
         #expect(index.skills.map(\.name) == names)
         for entry in index.skills {
@@ -328,7 +353,7 @@ struct CatalogSyncTests {
     @Test("The Claude catalog version is the VERSION file")
     func catalogVersionIsTheVersionFile() throws {
         let catalog = try Self.committedCatalog(
-            atPath: ClaudeCatalog.path, as: CommittedClaudeCatalog.self)
+            atPath: CommittedClaudeCatalog.path, as: CommittedClaudeCatalog.self)
         let version = try Self.releaseVersion()
         #expect(catalog.metadata.version == version)
     }

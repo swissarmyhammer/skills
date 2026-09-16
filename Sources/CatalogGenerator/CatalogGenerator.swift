@@ -23,7 +23,10 @@ public struct CatalogGenerator: Sendable {
     private static let lineBreak = "\n"
 
     /// The root of the repository that the generator reads and writes.
-    public let repositoryRoot: URL
+    ///
+    /// A caller gives the root to ``init(repositoryRoot:)`` and never reads it
+    /// back, thus the property stays in the module.
+    internal let repositoryRoot: URL
 
     /// Makes a generator over one repository.
     ///
@@ -35,10 +38,13 @@ public struct CatalogGenerator: Sendable {
 
     /// Builds the bytes of each catalog file from the skill folders.
     ///
+    /// The executable writes with ``write()``, thus the step that builds the
+    /// bytes alone stays in the module and in its tests.
+    ///
     /// - Returns: One entry for each file, in write order.
     /// - Throws: A ``CatalogGeneratorError`` when the generator cannot read the
     ///   version file, the layer root, or a `SKILL.md` file.
-    public func generate() throws -> [GeneratedCatalogFile] {
+    internal func generate() throws -> [GeneratedCatalogFile] {
         let version = try releaseVersion()
         let skills = try catalogSkills()
         return try [

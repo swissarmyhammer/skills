@@ -5,7 +5,10 @@ import Foundation
 /// Each case names the file or the folder that the generator could not use,
 /// thus a person who runs `scripts/generate-catalogs` reads which path to
 /// correct.
-public enum CatalogGeneratorError: Error, Sendable, Equatable, CustomStringConvertible {
+///
+/// The executable catches the error and reports its text, thus it names no case
+/// and the type stays in the module.
+internal enum CatalogGeneratorError: Error, Sendable, Equatable, CustomStringConvertible {
     /// The `VERSION` file is not there, or it cannot be read.
     case unreadableVersion(URL)
 
@@ -19,7 +22,7 @@ public enum CatalogGeneratorError: Error, Sendable, Equatable, CustomStringConve
     case unreadableSkillFile(URL)
 
     /// The text of the error, which names the path that stopped the run.
-    public var description: String {
+    internal var description: String {
         switch self {
         case .unreadableVersion(let url):
             "The generator cannot read the version file \(url.path)."
