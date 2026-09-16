@@ -1,0 +1,111 @@
+---
+name: plan
+description: Plan Mode workflow. Use this skill when the user says "/plan", "help me plan", "break this into tasks", "design the approach", or otherwise wants to plan work, and also whenever you are in Plan Mode. Drives all planning activity — research, task decomposition, and creating kanban tasks as the plan artifact.
+license: MIT OR Apache-2.0
+compatibility: Requires the `code_context` MCP tool for pre-plan research (symbol search, callgraph, blast-radius) and the `kanban` MCP tool for persisting the plan as kanban tasks. 
+agent: planner
+metadata:
+  author: swissarmyhammer
+  version: "1.0.0"
+---
+
+
+
+# Plan
+
+Use whenever you enter Plan Mode or the user asks you to plan work.
+
+$ARGUMENTS
+
+
+## Interpreting the arguments
+
+The arguments above may be a free-form description of the work, a path to a file that is the basis for the plan, or both.
+
+- **If the arguments name or reference a file** (e.g. a path like `docs/spec.md`, an `@`-mention, or "plan from <file>"), read that file first with `Read` and treat its contents as the authoritative basis for the plan. Follow any further file references inside it that are relevant.
+- **If the arguments are a description**, plan from the description directly.
+- **If both are given**, the description refines or scopes what's in the file.
+
+Either way, still do the `code_context` research below before creating tasks — the basis file tells you *what* to build; research tells you *what's affected*.
+
+## Goals
+
+1. **Understand the work** — research deeply enough to know what changes and what's affected.
+2. **Produce a kanban board** — the artifact is kanban tasks with subtasks. Not markdown. Not TodoWrite/TaskCreate/TaskUpdate.
+3. **Right-size tasks** — each is one focused unit, independently implementable and verifiable.
+4. **Collaborate** — present, discuss, iterate until the user is satisfied.
+5. **Hand off cleanly** — when done, remind the user: `/finish` (autonomous) or `/implement` (one at a time).
+
+## Example
+
+**Feature request → decomposed board:** User says "I want to add authentication to the app".
+
+1. Research with `code_context`: `search symbol "user"`, `search symbol "session"`, `get callgraph` (inbound) on the symbols you expect to change to find callers — and `get blastradius src/server.rs max_hops 3` when a change touches a shared symbol's signature.
+2. Ensure a board exists: `kanban` `{"op": "init board", "name": "<repo name>"}` (`add task` auto-creates one, but name it).
+3. As design crystallizes in conversation, create tasks one at a time with the `kanban` tool — not as an end-of-discussion batch. Each `description` follows the Task Standards template (What / Acceptance Criteria / Tests):
+   - `{"op": "add task", "title": "Design auth architecture", "description": "## What\n…\n## Acceptance Criteria\n- [ ] …\n## Tests\n- [ ] …"}`
+   - `{"op": "add task", "title": "Add User model and migration", "description": "## What\n…"}`
+   - `{"op": "add task", "title": "Implement POST /api/login", "description": "…", "depends_on": ["<user-model-task-id>"]}`
+4. Encode ordering with `depends_on` so foundational tasks precede integration.
+5. Verify with `{"op": "list tasks"}`, present the board, iterate.
+6. Before handoff, **double-check the board** (see below): launch the `double-check` agent to critique it, apply its REVISE findings once.
+7. User approves → remind: `/finish` (autonomous) or `/implement` (one at a time). Do NOT call `ExitPlanMode`, do NOT start implementing.
+
+The board IS the plan. **Never write a markdown plan file** (`PLAN.md`, `DRAFT_PLAN.md`, scratch files) — `/finish` and `/implement` read kanban, not prose. If the `kanban` tool is unavailable or its calls fail, STOP and tell the user; do not substitute markdown and do not claim tasks exist without a `list tasks` read-back.
+
+## Constraints
+
+{% include "_partials/sah-architecture-awareness" %}
+
+### No Phases
+
+Phases are a project management tool, not a planning tool. They encourage batch work and waterfall handoffs. Don't use them. The workflow is continuous: research → task creation → implementation → testing → review → done, with feedback loops between each step.
+
+The dependency graph of tasks encodes the necessary ordering constraints. For example, a "Design auth architecture" task can be a dependency of "Implement POST /api/login", which in turn can be a dependency of "Write login tests". This allows for natural parallelism and iteration without rigid phase boundaries.
+
+### Plans are kanban tasks — created as you go
+
+Every planned item becomes a kanban task. The board IS the plan; no markdown files. **Create tasks as they crystallize during discussion, not at the end.** If a work item is defined enough to describe in conversation, it's defined enough to be a task. Don't wait to be asked.
+
+### Research before tasks
+
+`code_context` is primary. Use symbol search, callgraphs (inbound to find callers), and text search (Glob/Grep/Read) to build the picture. When a planned change touches a shared symbol's signature, `get blastradius` on the file surfaces downstream work you'd otherwise miss — it's built from LSP call edges, so treat an empty `edges: []` as "LSP not ready", not "no impact", and lean on inbound `get callgraph` instead.
+
+{% include "_partials/sah-task-standards" %}
+
+### Board naming
+
+Name the board for the workspace/repository, not the feature being planned.
+
+### Double-check the board
+
+Once the board is built and before you remind the user to `/finish` or `/implement`, adversarially double-check it. Launch the `double-check` subagent against the just-created tasks and ask it to try to prove the plan is wrong or incomplete:
+
+- Are tasks **right-sized** — each one focused, independently implementable and verifiable?
+- Are the **acceptance criteria verifiable** — concrete, machine-checkable, not vague?
+- Are **dependencies and ordering** sound — foundational work precedes integration, no cycles?
+- Is **anything from the stated intent missing** — work the request implies but no task covers?
+
+The agent returns a PASS/REVISE verdict. **Apply REVISE findings once** — adjust, add, or reorder tasks with the `kanban` tool to address them — then proceed to the handoff reminder. Do not loop: one double-check pass, incorporate it, hand off. This double-check operates on the kanban board itself (the board IS the plan); it never produces or reads a markdown plan file.
+
+### User controls plan-mode exit
+
+Do NOT call `ExitPlanMode`. The user decides when the plan is ready.
+
+### No auto-implementation on exit
+
+When the user exits plan mode or approves, do NOT begin implementing. Remind:
+- `/finish` — drives tasks to `done` (implement → test → review) autonomously
+- `/implement` — one task at a time
+
+### Ordering
+
+Foundational changes (data models, types, config) → core logic → integration → tests → cleanup. Use `depends_on` for ordering constraints.
+
+## Autonomous Agent Mode
+
+No Plan Mode UI or TUI (e.g. headless `-p`)? The procedure above is unchanged: research, then create kanban tasks one at a time with the `kanban` tool, and verify with `list tasks`. Do not wait for a UI and do not write a markdown plan file. (`references/PLANNING_GUIDE.md` has the long-form version when bundled, but everything required is in this file.)
+
+## Updating an Existing Plan
+
+Update kanban directly — add tasks, `update task` to edit, `delete task` to remove, reorder dependencies. The board is a living document.
