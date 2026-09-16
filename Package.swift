@@ -15,6 +15,10 @@ let catalogGeneratorTargetName = "CatalogGenerator"
 // generate-catalogs` and `scripts/generate-catalogs` both name it.
 let generatorExecutableName = "generate-catalogs"
 
+// Single source of truth for the release executable name. `swift run release`
+// and `scripts/release` both name it.
+let releaseExecutableName = "release"
+
 /// The GitHub organization URL base the swissarmyhammer-family dependency
 /// resolves under.
 ///
@@ -40,8 +44,14 @@ let clientPackageName = "FoundationModelsSkills"
 ///
 /// - `CatalogGenerator`, which writes the catalogs of the repository from the
 ///   skill folders (marketplace.md 3.3). Nobody edits a catalog by hand.
+///   It also holds the release tool, which writes the one release version into
+///   each file that publishes it (marketplace.md 3.2).
 /// - `generate-catalogs`, the executable that runs the generator.
 ///   `scripts/generate-catalogs` is the wrapper a person calls.
+/// - `release`, the executable that runs the release tool. `scripts/release` is
+///   the wrapper a person calls: it reads the state of the working tree and the
+///   result of the test run, which the tool itself never reads, and it makes
+///   the release commit and the release tag through `scripts/release-commit`.
 /// - The test target, which is the repository's test harness: it builds a
 ///   `SkillsRegistry` over `skills/`, holds the library to the validation rules
 ///   the client applies at run time, and holds each committed catalog equal to
@@ -57,6 +67,8 @@ let package = Package(
         // The catalog generator, which a person runs through
         // `scripts/generate-catalogs`.
         .executable(name: generatorExecutableName, targets: [generatorExecutableName]),
+        // The release tool, which a person runs through `scripts/release`.
+        .executable(name: releaseExecutableName, targets: [releaseExecutableName]),
     ],
     dependencies: [
         // The client this marketplace ships skills for. The test harness uses
@@ -75,6 +87,12 @@ let package = Package(
         ),
         .executableTarget(
             name: generatorExecutableName,
+            dependencies: [
+                .byName(name: catalogGeneratorTargetName),
+            ]
+        ),
+        .executableTarget(
+            name: releaseExecutableName,
             dependencies: [
                 .byName(name: catalogGeneratorTargetName),
             ]

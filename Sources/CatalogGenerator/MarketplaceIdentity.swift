@@ -44,6 +44,16 @@ internal enum MarketplaceIdentity {
         "\(skillsFolderPath)/\(name)"
     }
 
+    /// The `SKILL.md` of one skill, as a path of the repository.
+    ///
+    /// ``Release`` reports the file it wrote by this path.
+    ///
+    /// - Parameter name: The name of the skill, which is its folder name.
+    /// - Returns: The path, relative to the repository root.
+    internal static func skillFilePath(name: String) -> String {
+        "\(skillsFolderName)/\(name)/\(skillFileName)"
+    }
+
     /// The `SKILL.md` of one skill, as the discovery index writes it.
     ///
     /// - Parameter name: The name of the skill, which is its folder name.

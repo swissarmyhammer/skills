@@ -63,14 +63,6 @@ struct CatalogSyncTests {
     /// The form of an artifact that is one `SKILL.md` file.
     private static let expectedSkillFileType = "skill-md"
 
-    /// The release version of the fixture repository that
-    /// ``generationIsDeterministic()`` builds.
-    private static let fixtureVersion = "9.9.9"
-
-    /// The names of the skills of that fixture library, in the order the
-    /// fixture writes them, which is not name order.
-    private static let fixtureSkillNames = ["beta", "alpha"]
-
     /// The path of each published catalog file, in the order the generator
     /// writes them.
     ///
@@ -172,59 +164,6 @@ struct CatalogSyncTests {
         return digestPrefix + hexadecimal
     }
 
-    /// The `SKILL.md` text of one skill of the fixture library.
-    ///
-    /// - Parameter name: The name of the skill.
-    /// - Returns: The text, with the frontmatter the loader of the client asks
-    ///   for.
-    private static func fixtureSkillFile(name: String) -> String {
-        """
-        ---
-        name: \(name)
-        description: The \(name) skill of the fixture library.
-        ---
-
-        # \(name)
-        """
-    }
-
-    /// Builds a repository that holds a `VERSION` file and a small library.
-    ///
-    /// The fixture lets a test write the catalogs two times without a change of
-    /// the checked-in files of this repository.
-    ///
-    /// - Returns: The root of the new repository.
-    /// - Throws: An error when a folder or a file cannot be written.
-    private static func makeFixtureRepository() throws -> URL {
-        let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let skillsRoot = root.appendingPathComponent(skillsFolderName, isDirectory: true)
-        for name in fixtureSkillNames {
-            let folder = skillsRoot.appendingPathComponent(name, isDirectory: true)
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            try Data(fixtureSkillFile(name: name).utf8)
-                .write(to: folder.appendingPathComponent(skillFileName))
-        }
-        try Data(fixtureVersion.utf8)
-            .write(to: root.appendingPathComponent(CatalogGenerator.versionFileName))
-        return root
-    }
-
-    /// Reads the files of one repository back from disk.
-    ///
-    /// - Parameters:
-    ///   - paths: The paths of the files, relative to the repository root.
-    ///   - root: The root of the repository.
-    /// - Returns: The bytes of each file, by path.
-    /// - Throws: An error when a file cannot be read.
-    private static func filesOnDisk(atPaths paths: [String], inRepositoryAt root: URL) throws -> [String: Data] {
-        var files: [String: Data] = [:]
-        for path in paths {
-            files[path] = try Data(contentsOf: root.appendingPathComponent(path))
-        }
-        return files
-    }
-
     /// Every committed catalog file holds the bytes that the generator writes
     /// now.
     ///
@@ -259,13 +198,13 @@ struct CatalogSyncTests {
     /// sorted and the skills are in name order by construction.
     @Test("The generator writes the same files on a second run")
     func generationIsDeterministic() throws {
-        let root = try Self.makeFixtureRepository()
+        let root = try FixtureRepository.make()
         defer { try? FileManager.default.removeItem(at: root) }
         let generator = CatalogGenerator(repositoryRoot: root)
         let firstPaths = try generator.write().map(\.path)
-        let first = try Self.filesOnDisk(atPaths: firstPaths, inRepositoryAt: root)
+        let first = try FixtureRepository.filesOnDisk(atPaths: firstPaths, inRepositoryAt: root)
         let secondPaths = try generator.write().map(\.path)
-        let second = try Self.filesOnDisk(atPaths: secondPaths, inRepositoryAt: root)
+        let second = try FixtureRepository.filesOnDisk(atPaths: secondPaths, inRepositoryAt: root)
         #expect(firstPaths == secondPaths)
         #expect(first == second)
     }

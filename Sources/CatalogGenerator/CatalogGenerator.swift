@@ -118,17 +118,35 @@ public struct CatalogGenerator: Sendable {
     /// rows by name, thus it gives the folders in the order the catalogs write
     /// them, and it skips `_partials/`, which holds no `SKILL.md` file.
     ///
+    /// ``Release`` reads the library the same way, thus the release tool writes
+    /// the version of each skill that a catalog names, and of no other folder.
+    ///
     /// - Returns: The skills, in name order.
     /// - Throws: A ``CatalogGeneratorError`` when the layer root holds no
-    ///   skill, or a `SKILL.md` file cannot be read.
-    private func catalogSkills() throws -> [CatalogSkill] {
-        let root = repositoryRoot.appendingPathComponent(
-            MarketplaceIdentity.skillsFolderName, isDirectory: true)
+    ///   skill.
+    internal func librarySkills() throws -> [SkillMetadata] {
+        let root = skillsLayerRoot
         let metadata = SkillsRegistry(roots: [root]).metadata().sorted { $0.id < $1.id }
         guard !metadata.isEmpty else {
             throw CatalogGeneratorError.emptyLibrary(root)
         }
-        return try metadata.map {
+        return metadata
+    }
+
+    /// The one layer root of the repository: `skills/`.
+    private var skillsLayerRoot: URL {
+        repositoryRoot.appendingPathComponent(
+            MarketplaceIdentity.skillsFolderName, isDirectory: true)
+    }
+
+    /// Reads the skills of the library as the catalogs write them.
+    ///
+    /// - Returns: The skills, in name order.
+    /// - Throws: A ``CatalogGeneratorError`` when the layer root holds no
+    ///   skill, or a `SKILL.md` file cannot be read.
+    private func catalogSkills() throws -> [CatalogSkill] {
+        let root = skillsLayerRoot
+        return try librarySkills().map {
             try catalogSkill(name: $0.id, description: $0.description, inLayerRoot: root)
         }
     }
