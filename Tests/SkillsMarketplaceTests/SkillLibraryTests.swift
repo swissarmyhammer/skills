@@ -87,36 +87,6 @@ struct SkillLibraryTests {
     /// (marketplace.md 3.5).
     private static let marketplaceIncludeTagPrefix = "\(includeTagPrefix)_partials/sah-"
 
-    /// The repository root, derived from this source file's own path: three
-    /// levels up from `Tests/SkillsMarketplaceTests/<file>.swift`.
-    ///
-    /// The `thisFile` default (`#filePath`) expands at the call site, and
-    /// every file of this test target is in `Tests/SkillsMarketplaceTests/`,
-    /// thus the three-levels-up derivation is the same for each caller.
-    /// Resolution from the source path keeps the suite hermetic: it can never
-    /// reach a real home directory or an installed copy of the marketplace.
-    ///
-    /// - Parameter thisFile: The calling source file's path. Defaults to the
-    ///   call site's `#filePath`.
-    /// - Returns: The repository root URL.
-    private static func repositoryRoot(thisFile: String = #filePath) -> URL {
-        URL(fileURLWithPath: thisFile)
-            .deletingLastPathComponent()  // <file>.swift -> SkillsMarketplaceTests/
-            .deletingLastPathComponent()  // SkillsMarketplaceTests/ -> Tests/
-            .deletingLastPathComponent()  // Tests/ -> repository root
-    }
-
-    /// The one layer root of this marketplace: `skills/`, which holds every
-    /// skill as a direct child, plus the `_partials/` folder (marketplace.md
-    /// 3.2).
-    ///
-    /// - Parameter thisFile: Forwarded to ``repositoryRoot(thisFile:)``.
-    /// - Returns: The `skills/` directory URL.
-    private static func skillsRoot(thisFile: String = #filePath) -> URL {
-        repositoryRoot(thisFile: thisFile)
-            .appendingPathComponent("skills", isDirectory: true)
-    }
-
     /// Builds the registry every test of this suite reads, over the one layer
     /// root of this repository.
     ///
@@ -127,11 +97,11 @@ struct SkillLibraryTests {
     /// nothing at all and would otherwise let each test pass on an empty
     /// library.
     ///
-    /// - Parameter thisFile: Forwarded to ``skillsRoot(thisFile:)``.
+    /// - Parameter thisFile: Forwarded to ``RepositoryLayout/skillsRoot(thisFile:)``.
     /// - Returns: The registry over `skills/`.
     /// - Throws: An error when the layer root is not there.
     private static func makeRegistry(thisFile: String = #filePath) throws -> SkillsRegistry {
-        let root = skillsRoot(thisFile: thisFile)
+        let root = RepositoryLayout.skillsRoot(thisFile: thisFile)
         try #require(
             FileManager.default.fileExists(atPath: root.path),
             "The layer root \(root.path) is not there, thus the suite would read an empty library.")
@@ -144,11 +114,11 @@ struct SkillLibraryTests {
     /// thus ``noLiquidLeftovers()`` reads the whole shipped library and not
     /// only the files the registry itself loads.
     ///
-    /// - Parameter thisFile: Forwarded to ``skillsRoot(thisFile:)``.
+    /// - Parameter thisFile: Forwarded to ``RepositoryLayout/skillsRoot(thisFile:)``.
     /// - Returns: The file URLs, in directory-walk order.
     /// - Throws: An error when the layer root cannot be walked.
     private static func textFiles(thisFile: String = #filePath) throws -> [URL] {
-        let root = skillsRoot(thisFile: thisFile)
+        let root = RepositoryLayout.skillsRoot(thisFile: thisFile)
         let walk = try #require(
             FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil),
             "The layer root \(root.path) cannot be walked, thus the suite would read no file.")

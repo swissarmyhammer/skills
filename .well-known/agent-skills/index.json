@@ -1,0 +1,173 @@
+{
+  "$schema" : "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills" : [
+    {
+      "description" : "Monitor the performance of a sah /finish batch (the kanban implement→test→review→commit pipeline) running in a given project folder — locate the active finish session, report progress, scan for errors, quantify token usage by source, and surface sah tooling errors and behavior changes. Takes a project folder as its argument. Use when the user says \"check sah\", \"watch the run\", \"monitor the finish run\", \"fire up the timer\", \"is the run healthy\", \"analyze token usage\", or wants periodic status on a finish batch in a folder. Drives a self-paced 10-minute watch loop until the run completes.",
+      "digest" : "sha256:15ffd2df5c883afdea3948b8c22d585a06911f7af82764952041ecfa58f0bd33",
+      "name" : "check-sah",
+      "type" : "skill-md",
+      "url" : "/skills/check-sah/SKILL.md"
+    },
+    {
+      "description" : "Check that CI is green for the current work and diagnose it when it is not, and optionally fix it. Detects the CI provider in use (GitHub Actions, GitLab, or any provider that reports commit checks back to GitHub) and reads the matching reference for the exact commands. Use when the user says \"check ci\", \"is ci passing\", \"did the build pass\", \"are the checks green\", \"ci status\", \"did my push pass\", or before claiming a branch/PR is ready to merge. Pass `fix` (e.g. \"fix ci\", \"make ci pass\", \"fix the build\") to also repair a real failure, re-verify locally, and commit and push.",
+      "digest" : "sha256:af0cef72b5fd64f709d3829b01cf79a8c48bcf52f06ea1adbdae8c9ccb54f453",
+      "name" : "ci",
+      "type" : "skill-md",
+      "url" : "/skills/ci/SKILL.md"
+    },
+    {
+      "description" : "Code context operations for symbol lookup, search, grep, call graph, and blast radius analysis. Use when the user says \"blast radius\", \"who calls this\", \"find symbol\", \"find references\", \"go to definition\", \"symbol lookup\", \"callgraph\", \"find callers\", \"what calls this function\", or \"what's affected if I change this\". Also use proactively before modifying code to understand structure, dependencies, and impact — list symbols and get callgraph (inbound) to see who calls a symbol, and get blastradius when changing a shared symbol's signature. Provides indexed, structural code intelligence that is faster and more precise than raw text search.",
+      "digest" : "sha256:8027ced34669651b989abbf9c5a899aec5e88e78c7e64b93fe18cabd84bace2f",
+      "name" : "code-context",
+      "type" : "skill-md",
+      "url" : "/skills/code-context/SKILL.md"
+    },
+    {
+      "description" : "Git commit workflow. Use this skill whenever the user says \"commit\", \"save changes\", \"check in\", or otherwise wants to commit code. Always use this skill instead of running git commands directly.",
+      "digest" : "sha256:eff5633436f3883d983d42343ba72126406c8c85d39a868522ec84f4cf2198dd",
+      "name" : "commit",
+      "type" : "skill-md",
+      "url" : "/skills/commit/SKILL.md"
+    },
+    {
+      "description" : "Run tests with coverage instrumentation, identify uncovered code, and produce kanban tasks for coverage gaps. Use when the user says \"coverage\", \"what's untested\", \"find coverage gaps\", or wants to know what needs tests.",
+      "digest" : "sha256:ed59e85ad02467d88261a6e7c69bae76dcb17e718113d266a7ce1638e4cd469b",
+      "name" : "coverage",
+      "type" : "skill-md",
+      "url" : "/skills/coverage/SKILL.md"
+    },
+    {
+      "description" : "Find and refactor duplicate code. Use this skill when the user wants to find near-duplicate code, check for copy-paste redundancy, or DRY up a codebase — optionally scoped to changed files.",
+      "digest" : "sha256:da9b1a469ead8aa2c80c3bbc89d99f5e6c2b1dc39d05d945ed412e1b4388e369",
+      "name" : "deduplicate",
+      "type" : "skill-md",
+      "url" : "/skills/deduplicate/SKILL.md"
+    },
+    {
+      "description" : "Discover project types, build commands, test commands, and language-specific guidelines for the current workspace. Use when the user says \"what kind of project\", \"detect project\", \"build command\", \"test command\", \"project type\", asks what language or framework the code uses, or wants to know how to build, test, or format the project. Also use early in any session before making changes.",
+      "digest" : "sha256:b5830da34e5a5345942ec8c199c2f492f3f722102808eba7520c600457eec68c",
+      "name" : "detected-projects",
+      "type" : "skill-md",
+      "url" : "/skills/detected-projects/SKILL.md"
+    },
+    {
+      "description" : "Double check your work by reviewing changes, asking clarifying questions, and verifying correctness before proceeding. Use when the user says \"double check\", \"verify\", \"sanity check\", or wants validation of recent work.",
+      "digest" : "sha256:68f0452ed7297cd2ded1936fc4497ee4f9be48be679cfcccca1329ef1923e243",
+      "name" : "double-check",
+      "type" : "skill-md",
+      "url" : "/skills/double-check/SKILL.md"
+    },
+    {
+      "description" : "Understand how unfamiliar code works before planning or changing it — its structure, behavior, data flow, and the blast radius of a change. Use when the user says \"explore\", \"investigate\", \"how does X work\", \"why does X happen\", \"where is X handled\", \"what calls X\", \"what would it take to change X\", or whenever you need to understand code before acting on it. Drives exploration with the code_context MCP tool — symbol search, callgraph traversal, and blast-radius analysis — instead of reading files top to bottom.",
+      "digest" : "sha256:60c62eb9132f116d8b1be71882c673528a231811d517c1a978bd5f48a45ba78e",
+      "name" : "explore",
+      "type" : "skill-md",
+      "url" : "/skills/explore/SKILL.md"
+    },
+    {
+      "description" : "Drive kanban tasks from ready to done by looping implement → test → commit → review until each task is clean. Use when the user says \"/finish\", \"drive tasks to done\", \"work the board\", \"finish the tasks\", \"finish the batch\", or otherwise wants to orchestrate tasks through the full pipeline to done. Supports single-task mode (one task id) and scoped-batch mode (all ready tasks in a tag, project, or filter).",
+      "digest" : "sha256:9dd088afc0e64d8005013ff4c327e35492e73806c64b4fefb3a9ad9eb93e6b88",
+      "name" : "finish",
+      "type" : "skill-md",
+      "url" : "/skills/finish/SKILL.md"
+    },
+    {
+      "description" : "Use this skill when the user says \"/implement\", \"implement task\", \"implement the next task\", \"work the next task\", \"pick up a task\", or \"implement\" followed by a task id. Picks up one kanban task and drives it from ready through doing, leaving it green and ready for review. Do NOT use this skill for free-form edits, typo fixes, refactors, or any coding work that is not tied to a specific kanban task — those are not \"implementation\" in this skill sense. If there is no kanban task yet, use the `task` or `plan` skill to create one first.",
+      "digest" : "sha256:bdb0cfb1612c1f824a9190ca56969e08cf2e126424dabafcc5acb0e8b9c855f7",
+      "name" : "implement",
+      "type" : "skill-md",
+      "url" : "/skills/implement/SKILL.md"
+    },
+    {
+      "description" : "Turn an issue into finished work. Use when a GitHub issue URL (e.g. github.com/owner/repo/issues/123) is pasted, or when the pasted text is clearly the body of an issue (title + description, \"Steps to reproduce\", \"Expected/Actual behavior\", labels). Also fires on \"/issue\", \"make a task from this issue\", \"implement this issue\", \"do this issue\". Converts the issue into one or more kanban tasks and then drives them to done.",
+      "digest" : "sha256:218adbb4a8b211343b786bed2af38287ea5b763a054c2af3c4b6b208fa29daf7",
+      "name" : "issue",
+      "type" : "skill-md",
+      "url" : "/skills/issue/SKILL.md"
+    },
+    {
+      "description" : "Execute the next task from the kanban board. Use when the user says \"kanban\", \"/kanban\", \"next task\", \"what's the next task\", or \"pick up work\". Picks up the next ready task from the board and drives it through doing to review.",
+      "digest" : "sha256:56787429bbaa110eb800730a8fae88dc51f94c5bee3a660fd1c7153ec3f63b44",
+      "name" : "kanban",
+      "type" : "skill-md",
+      "url" : "/skills/kanban/SKILL.md"
+    },
+    {
+      "description" : "Diagnose and install missing LSP servers for your project. Use when the user says \"lsp\", \"language servers\", \"check lsp\", or wants to ensure code intelligence is fully working. Also use when live code intelligence ops (get_hover, get_completions, go to definition) return degraded results from the tree-sitter layer instead of LSP, or when you see \"no code intelligence\", \"can't go to definition\", \"no type info available\", or \"source_layer: TreeSitter\" on ops that should have full LSP data.",
+      "digest" : "sha256:b024c33e1d6befe07939ab7822660d6f3b130128f7a40cf18780d458d9eec517",
+      "name" : "lsp",
+      "type" : "skill-md",
+      "url" : "/skills/lsp/SKILL.md"
+    },
+    {
+      "description" : "Replace README.md wholesale with a minimal, high-quality README modeled on the best open source packages — it writes a complete new file, never an incremental edit of the old one. Two modes — `library` (no logo, leads with an inline runnable usage example) and `application` (logo, installation, getting started). Use when the user says \"make a readme\", \"write the readme\", \"readme\", \"improve the README\", or a new project needs one. Pass `library` or `application` to force the mode; otherwise it is detected from the project manifest.",
+      "digest" : "sha256:c306b43394b81debb13ebdebba7d23c4cc7978606f325fe18572a58fb4a8d02e",
+      "name" : "make-readme",
+      "type" : "skill-md",
+      "url" : "/skills/make-readme/SKILL.md"
+    },
+    {
+      "description" : "Generate a visual architecture overview of the codebase with Mermaid diagrams. Produces ARCHITECTURE.md at repo root. Use when the user says \"map\", \"architecture\", \"overview\", or wants to understand the codebase structure.",
+      "digest" : "sha256:2c42ce4062887bd2946048b16945fe1b8bce7e90bd773d7cfed5c4fd9ec1819a",
+      "name" : "map",
+      "type" : "skill-md",
+      "url" : "/skills/map/SKILL.md"
+    },
+    {
+      "description" : "Plan Mode workflow. Use this skill when the user says \"/plan\", \"help me plan\", \"break this into tasks\", \"design the approach\", or otherwise wants to plan work, and also whenever you are in Plan Mode. Drives all planning activity — research, task decomposition, and creating kanban tasks as the plan artifact.",
+      "digest" : "sha256:e4bd7fe87cbb047a7ed4a9e2fef1cc90582566d5776ce01daf3236661bc1d9a8",
+      "name" : "plan",
+      "type" : "skill-md",
+      "url" : "/skills/plan/SKILL.md"
+    },
+    {
+      "description" : "Code review workflow. Use this skill whenever the user says \"review\", \"code review\", \"review this PR\", \"review my changes\", or otherwise wants a code review.",
+      "digest" : "sha256:7c35e597a5641bd7e08c603610f86ba20e7fa4dd4fa3f3300c5c8c32c6403697",
+      "name" : "review",
+      "type" : "skill-md",
+      "url" : "/skills/review/SKILL.md"
+    },
+    {
+      "description" : "Learn what SwissArmyHammer (sah) makes available and how to use it. Use when the user says \"sah help\", \"/sah-help\", \"what can sah do\", \"what skills are there\", \"what tools do I have\", \"how do I use swissarmyhammer\", \"which skill do I use for X\", or is new to sah. Gives a short tour of the skills, tools, subagents, validators, and CLI commands. Given a topic, explains that one topic instead.",
+      "digest" : "sha256:d2c757cfd4de73994eaa2c05a6c9a72d14fe1d43215ff945d45f169ba02e11a8",
+      "name" : "sah-help",
+      "type" : "skill-md",
+      "url" : "/skills/sah-help/SKILL.md"
+    },
+    {
+      "description" : "Shell command execution with persistent history, process management, and searchable output. Use when you need to run a shell command, grep previous command output, get output lines from a prior command, list running processes, or kill a hung process. Triggers on phrases like \"run X\", \"execute X\", \"grep the output\", \"grep the last build output\", \"kill that process\", \"show me the output of command N\".",
+      "digest" : "sha256:71aa2652542be372359693654d8fe2bc1e3c833889702e0eb5ddca79904b7b93",
+      "name" : "shell",
+      "type" : "skill-md",
+      "url" : "/skills/shell/SKILL.md"
+    },
+    {
+      "description" : "Create a single, well-researched kanban task. Use when the user wants to add a task, track an idea, or capture work without entering full plan mode.",
+      "digest" : "sha256:b1f9245872d31654e2fd2a90c1155533738df1d7a7d1376f16d05c2ea150d18b",
+      "name" : "task",
+      "type" : "skill-md",
+      "url" : "/skills/task/SKILL.md"
+    },
+    {
+      "description" : "Use when implementing any feature or bugfix, before writing implementation code.",
+      "digest" : "sha256:ce642d1762979fe74f9400e2dc2e364bce3f6e79721ae0a7023fd7f32ba6c8c6",
+      "name" : "tdd",
+      "type" : "skill-md",
+      "url" : "/skills/tdd/SKILL.md"
+    },
+    {
+      "description" : "Run tests and analyze results. Use when the user wants to run the test suite or test specific functionality.",
+      "digest" : "sha256:ecab7e5bc35b2c8863c60f0281e46e9f85bcafc6ae9326048b1e551f0761e77e",
+      "name" : "test",
+      "type" : "skill-md",
+      "url" : "/skills/test/SKILL.md"
+    },
+    {
+      "description" : "Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions",
+      "digest" : "sha256:3d3654615714f0e4843ca4b1623b7cdfc551d3ba97fe82523534e7d0408357f0",
+      "name" : "thoughtful",
+      "type" : "skill-md",
+      "url" : "/skills/thoughtful/SKILL.md"
+    }
+  ]
+}

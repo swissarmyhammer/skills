@@ -1,0 +1,15 @@
+{
+  "interface" : {
+    "displayName" : "SwissArmyHammer Skills"
+  },
+  "name" : "swissarmyhammer-skills",
+  "plugins" : [
+    {
+      "name" : "swissarmyhammer",
+      "source" : {
+        "path" : "./",
+        "source" : "local"
+      }
+    }
+  ]
+}
