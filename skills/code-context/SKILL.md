@@ -97,7 +97,8 @@ await tools.code_context.rebuildIndex({ layer: "treesitter" });
 ```
 
 `searchCode` ranks by the meaning of the text. A host can turn that rank off.
-If its results look random, use `grepCode` and `searchSymbol`.
+Then `searchCode` answers with an error that says the embedding layer is off:
+use `grepCode` and `searchSymbol`.
 
 ## The index fills in the background
 

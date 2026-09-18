@@ -3,7 +3,7 @@
   "skills" : [
     {
       "description" : "Code context verbs for symbol lookup, search, grep, call graph, and blast radius analysis. Use when the user says \"blast radius\", \"who calls this\", \"find symbol\", \"find references\", \"go to definition\", \"symbol lookup\", \"callgraph\", \"find callers\", \"what calls this function\", or \"what's affected if I change this\". Also use before you change code, to know its structure, its callers and its impact: list the symbols of a file, get the inbound call graph of a symbol, and get the blast radius of a shared symbol. The index is faster and more exact than a raw text search.",
-      "digest" : "sha256:0b091fb72524d1f451c66f6095dac2c94803dba289b14362ab8b5bbe4ce0d1d4",
+      "digest" : "sha256:30cb2c1dce76d6cdc8c1dcb506f54ee9ee843dc6a3f344a432e87d06bd502dbb",
       "name" : "code-context",
       "type" : "skill-md",
       "url" : "/skills/code-context/SKILL.md"
