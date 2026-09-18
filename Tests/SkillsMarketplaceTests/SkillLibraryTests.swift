@@ -23,35 +23,16 @@ struct SkillLibraryTests {
     /// Every skill id this marketplace ships, sorted the way
     /// `SkillsRegistry.metadata()` sorts its own rows.
     ///
-    /// The list is the checked-in record of the copy of marketplace.md 3.4:
-    /// the 24 folders of SwissArmyHammer's `builtin/skills/`. A skill that is
-    /// added, dropped, or renamed fails ``copiesAllSkills()`` until a person
-    /// updates this list with it.
+    /// On the `code-context` branch, the list is the five skills whose only
+    /// requirement is the `code_context` tool. A skill that is added, dropped,
+    /// or renamed fails ``copiesAllSkills()`` until a person updates this list
+    /// with it.
     private static let expectedSkillIDs = [
-        "check-sah",
-        "ci",
         "code-context",
-        "commit",
-        "coverage",
-        "deduplicate",
         "detected-projects",
-        "double-check",
         "explore",
-        "finish",
-        "implement",
-        "issue",
-        "kanban",
         "lsp",
-        "make-readme",
         "map",
-        "plan",
-        "review",
-        "sah-help",
-        "shell",
-        "task",
-        "tdd",
-        "test",
-        "thoughtful",
     ]
 
     /// The file extension of every text file this marketplace ships.
