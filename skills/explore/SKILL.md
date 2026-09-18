@@ -1,8 +1,8 @@
 ---
 name: explore
-description: Understand how unfamiliar code works before planning or changing it — its structure, behavior, data flow, and the blast radius of a change. Use when the user says "explore", "investigate", "how does X work", "why does X happen", "where is X handled", "what calls X", "what would it take to change X", or whenever you need to understand code before acting on it. Drives exploration with the code_context MCP tool — symbol search, callgraph traversal, and blast-radius analysis — instead of reading files top to bottom.
+description: Understand how unfamiliar code works before planning or changing it — its structure, behavior, data flow, and the blast radius of a change. Use when the user says "explore", "investigate", "how does X work", "why does X happen", "where is X handled", "what calls X", "what would it take to change X", or whenever you need to understand code before acting on it. Drives exploration with the `tools.code_context` verbs — symbol search, callgraph traversal, and blast-radius analysis — instead of reading files top to bottom.
 license: MIT OR Apache-2.0
-compatibility: Requires the `code_context` MCP tool for symbol search, callgraph traversal, and blast-radius analysis during exploration.
+compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: explorer
 metadata:
   author: swissarmyhammer
@@ -29,13 +29,15 @@ Can't state all three? Not done. Guessing at any? Back to the tool — don't fil
 
 ## Process
 
+Each verb below is a code-mode call. Make the calls in the `runCode` tool, as JavaScript, and `return` the part of the result that you need. A `line` and a `character` are 0-based.
+
 ### Orient — check layers
 
-```json
-{"op": "get status"}
+```js
+await tools.code_context.getStatus({});
 ```
 
-Note which layers are active. Live LSP ops (`get definition`, `get hover`, `search workspace_symbol`) work immediately — don't wait for indexing. If LSP unavailable, results come from tree-sitter. Check `lsp status` to see per-language coverage.
+Note which layers are active. Live LSP ops (`getDefinition`, `getHover`, `searchWorkspaceSymbol`) work immediately — don't wait for indexing. If LSP unavailable, results come from tree-sitter. Check `getLspStatus` to see per-language coverage.
 
 If `ARCHITECTURE.md` exists at the project root, read it now (per the Architecture Awareness guidance) — it gives the system map before tracing individual symbols.
 
@@ -43,54 +45,54 @@ If `ARCHITECTURE.md` exists at the project root, read it now (per the Architectu
 
 Broad first. Use domain keywords:
 
-```json
-{"op": "search symbol", "query": "<domain keyword>", "max_results": 15}
+```js
+await tools.code_context.searchSymbol({ query: "<domain keyword>", maxResults: 15 });
 ```
 
-If the index is building and `search symbol` is sparse, use the live alternative:
+If the index is building and `searchSymbol` is sparse, use the live alternative:
 
-```json
-{"op": "search workspace_symbol", "query": "<domain keyword>"}
-{"op": "list symbols", "file_path": "<key file>"}
+```js
+await tools.code_context.searchWorkspaceSymbol({ query: "<domain keyword>" });
+await tools.code_context.listSymbol({ file: "<key file>" });
 ```
 
 **Looking for**: the nouns and verbs of the problem — structs, traits, functions that participate.
 
 ### Trace — follow execution
 
-```json
-{"op": "get symbol", "query": "<specific symbol>"}
+```js
+await tools.code_context.getSymbol({ query: "<specific symbol>" });
 ```
 
 Jump to definitions and types without reading whole files:
 
-```json
-{"op": "get definition", "file_path": "<file>", "line": <line>, "character": <col>}
-{"op": "get hover", "file_path": "<file>", "line": <line>, "character": <col>}
+```js
+await tools.code_context.getDefinition({ file: "<file>", line: <line>, character: <col> });
+await tools.code_context.getHover({ file: "<file>", line: <line>, character: <col> });
 ```
 
 Call relationships both directions:
 
-```json
-{"op": "get callgraph", "symbol": "<symbol>", "direction": "both", "max_depth": 2}
-{"op": "get inbound_calls", "file_path": "<file>", "line": <line>, "character": <col>}
+```js
+await tools.code_context.getCallgraph({ symbol: "<symbol>", direction: "both", maxDepth: 2 });
+await tools.code_context.getInboundCalls({ file: "<file>", line: <line>, character: <col> });
 ```
 
 All usages:
 
-```json
-{"op": "get references", "file_path": "<file>", "line": <line>, "character": <col>}
+```js
+await tools.code_context.getReferences({ file: "<file>", line: <line>, character: <col> });
 ```
 
-**Looking for**: the path data takes through the system. `get inbound_calls` is live LSP precision for "who calls this"; `get callgraph` uses indexed edges for broader traversal.
+**Looking for**: the path data takes through the system. `getInboundCalls` is live LSP precision for "who calls this"; `getCallgraph` uses indexed edges for broader traversal.
 
 ### Scope — measure the blast radius
 
-```json
-{"op": "get blastradius", "file_path": "<target>", "max_hops": 3}
+```js
+await tools.code_context.getBlastradius({ file: "<target>", maxHops: 3 });
 ```
 
-Supplement with `get references` — blast radius follows call edges, but references also catch type usage, field access, and trait impls.
+Supplement with `getReferences` — blast radius follows call edges, but references also catch type usage, field access, and trait impls.
 
 **Looking for**: how far a change propagates. If the radius surprises you, you don't understand the code yet — back to step 3.
 
@@ -98,7 +100,7 @@ Supplement with `get references` — blast radius follows call edges, but refere
 
 Tests are the clearest executable spec — they confirm understanding and show project patterns.
 
-Also use Glob/Grep for test files near the code:
+Also use `tools.files.glob` and `tools.files.grep` for test files near the code:
 - Same dir with `_test` suffix
 - `tests/` at project/crate root
 - Inline test modules (`#[cfg(test)]`, `describe(`, `#[test]`)
@@ -133,12 +135,12 @@ Results include `source_layer`:
 
 Tree-sitter-only for a language that should have LSP? Suggest `/lsp`.
 
-Use raw Read/Grep/Glob only for:
+Use `tools.files.read`, `tools.files.grep` and `tools.files.glob` only for:
 - String literals, config, error messages not in the symbol index
 - Non-code files (TOML, YAML, JSON, Markdown)
 - Confirming exact syntax after code-context gave you the location
 
-**Don't** start by reading files top to bottom. Start with `search symbol` (or `search workspace_symbol` while indexing) and `get callgraph`; use `get definition`/`get hover` to inspect specifics.
+**Don't** start by reading files top to bottom. Start with `searchSymbol` (or `searchWorkspaceSymbol` while indexing) and `getCallgraph`; use `getDefinition`/`getHover` to inspect specifics.
 
 ## When to Recurse
 
@@ -148,11 +150,11 @@ If blast radius reveals surprises or the callgraph leads to new territory, loop 
 
 **Understanding a feature:** User says "explore how the kanban watcher decides which files to re-index".
 
-1. Orient with `get status` — note active layers.
-2. Survey: `search symbol "watcher"`, `search symbol "invalidate"` → `KanbanWatcher::on_event`, `invalidate_file`.
-3. Trace: `get symbol "KanbanWatcher::on_event"`, then `get callgraph "invalidate_file"` inbound, depth 2.
-4. Scope: `get blastradius "src/watcher.rs" max_hops 3` → indexer + MCP layer only.
-5. Tests: `grep code "on_event"` in `test` → smoke test covers creation; nothing covers deletion.
+1. Orient with `getStatus` — note active layers.
+2. Survey: `searchSymbol({ query: "watcher" })`, `searchSymbol({ query: "invalidate" })` → `KanbanWatcher::on_event`, `invalidate_file`.
+3. Trace: `getSymbol({ query: "KanbanWatcher::on_event" })`, then `getCallgraph({ symbol: "invalidate_file", direction: "inbound", maxDepth: 2 })`.
+4. Scope: `getBlastradius({ file: "src/watcher.rs", maxHops: 3 })` → indexer + MCP layer only.
+5. Tests: `grepCode({ pattern: "on_event", filePattern: "*test*" })` → smoke test covers creation; nothing covers deletion.
 6. Conclude:
 
    ```
@@ -172,6 +174,6 @@ Exploration complete. Deletion gap → `/tdd` or `/task`.
 
 - **Don't write code during exploration.** Hand off.
 - **Don't skip blast radius.** It's where surprises surface.
-- **Don't read files top to bottom.** Use `code_context` to find the right code, inspect what matters.
+- **Don't read files top to bottom.** Use the `tools.code_context` verbs to find the right code, inspect what matters.
 - **Don't explore forever.** 3 loops without convergence → stop, say what's unclear, ask the user.
 - **Don't use exploration to avoid acting.** Once you can explain how/where/what-it-touches, move to planning or implementation.

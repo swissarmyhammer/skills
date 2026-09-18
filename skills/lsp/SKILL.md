@@ -1,15 +1,13 @@
 ---
 name: lsp
 description: >-
-  Diagnose and install missing LSP servers for your project. Use when the user
-  says "lsp", "language servers", "check lsp", or wants to ensure code
-  intelligence is fully working. Also use when live code intelligence ops
-  (get_hover, get_completions, go to definition) return degraded results from
-  the tree-sitter layer instead of LSP, or when you see "no code intelligence",
-  "can't go to definition", "no type info available", or "source_layer:
-  TreeSitter" on ops that should have full LSP data.
+  Diagnose the language servers of the workspace. Use when the user says "lsp",
+  "language servers", "check lsp", or wants to make sure that code intelligence
+  works. Also use when a position verb (`getHover`, `getDefinition`,
+  `getReferences`) gives an empty result, or when `getCallgraph` gives no edges
+  for code that clearly has callers.
 license: MIT OR Apache-2.0
-compatibility: Requires the `code_context` MCP tool for `lsp status` and `detect projects`. Also needs locally installed LSP servers (e.g. rust-analyzer, pyright, gopls, typescript-language-server) on the system PATH for the languages present in the workspace.
+compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 metadata:
   author: swissarmyhammer
   version: "1.0.0"
@@ -17,87 +15,68 @@ metadata:
 
 # LSP
 
-Diagnose LSP server health and install missing servers for the `code_context` MCP tool. When live LSP ops (`get_hover`, `get_completions`, `go_to_definition`) return tree-sitter results instead of LSP, the most likely cause is a missing server.
+Diagnose the language servers behind `tools.code_context`. When a position verb
+gives nothing, or the call graph has no edges, the usual cause is a language
+server that is absent or not ready.
 
 ## Process
 
-### 1. Get status
+### 1. Get the status
 
-```json
-{"op": "lsp status"}
+Call the verbs in the `runCode` tool:
+
+```js
+const servers = await tools.code_context.getLspStatus({});
+const projects = await tools.code_context.detectProjects({});
+const index = await tools.code_context.getStatus({});
+return { servers, projects, index };
 ```
 
-Returns:
-- `languages[]`: `{icon, extensions, lsp_server, installed, install_hint}` (hint only when not installed)
-- `all_healthy`: true when every detected language's server is installed
+### 2. Read the result
 
-### 2. Present
-
-One row per language:
-
-| Icon | Server | Status | Install Command |
-|------|--------|--------|-----------------|
-| (icon) | rust-analyzer | Installed | — |
-| (icon) | typescript-language-server | Missing | `npm install -g typescript-language-server` |
+- `getLspStatus` gives the state of each language server that the workspace
+  manages: whether it runs, whether it failed, and whether its binary was not
+  found.
+- `detectProjects` gives the languages of the workspace. A language with no
+  server in the status has no language server layer.
+- `getStatus` gives the progress of each index layer. A language server layer
+  that is not complete gives an empty call graph for some files.
 
 ### 3. Act
 
-**`all_healthy: true`** — report all good, no action.
+- **Each server runs:** report that, and do no more.
+- **A server is not found:** the host installs an absent server
+  automatically when it can, and that takes some minutes. Look at the status
+  again later. Do not install a server yourself unless the user tells you to.
+- **A server failed:** report its name and its message. Then continue the task
+  with the verbs that need no language server: `getSymbol`, `searchSymbol`,
+  `listSymbol`, `grepCode` and `queryAst`.
 
-**Servers missing**:
-1. List the missing servers + install commands
-2. Ask permission before installing
-3. Run approved installs via `shell`
-4. Re-run `lsp status` to confirm
-5. Show updated table
+### 4. Verify with a live verb
 
-### 4. Verify with a live op
-
-Confirm end-to-end with a known symbol:
-
-```json
-{"op": "get symbol", "query": "main"}
+```js
+return await tools.code_context.searchWorkspaceSymbol({ query: "main" });
 ```
 
-LSP-sourced data confirms it works. Still degraded? The server may need a project restart or config (`compile_commands.json` for C/C++, `tsconfig.json` for TS).
-
-### 5. Errors
-
-- **Install fails**: report output; suggest manual install (different package manager, permissions, version).
-- **No languages detected**: confirm source files exist; re-run after adding them.
+A result that is not empty shows that a language server answers.
 
 ## Troubleshooting
 
-### `get_hover` / `get_definition` still return `source_layer: TreeSitter` after `installed: true`
+### A position verb still gives nothing after the server runs
 
-The LSP process was already running (against the prior state) when the binary was installed, or the initial scan hasn't finished. Installs don't restart live sessions.
+The server indexes the workspace after it starts. For a large repository this
+is some minutes. Try again later. Make sure that `line` and `character` are
+0-based, and that they point at the name of the symbol.
 
-Restart the MCP server (or parent harness) so `sah` spawns a fresh LSP, then wait for the scan. Verify:
+### `clangd` gives no symbols
 
-```json
-{"op": "get hover", "file_path": "<known-file>", "line": 0, "character": 0}
+`clangd` needs a `compile_commands.json` file. Without it, use the tree-sitter
+verbs for C and C++ files.
+
+### The call graph is empty, and the servers run
+
+Mark the language server layer dirty, and let the index fill again:
+
+```js
+return await tools.code_context.rebuildIndex({ layer: "lsp" });
 ```
-
-A non-empty `contents` from the LSP layer = fixed.
-
-### `clangd` (C/C++): no symbols or "Unable to handle compilation, expected compilation database"
-
-`clangd` needs `compile_commands.json` at the workspace root (or a discoverable `build/`). Generate, then re-run `lsp status`:
-
-- CMake: `cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && ln -sf build/compile_commands.json .`
-- Make (Bear): `bear -- make`
-- Meson: already emitted in the build dir — symlink to root
-
-### `typescript-language-server` returns nothing in a monorepo
-
-No (or wrong) `tsconfig.json` resolves for the file — common when each package has its own but the root doesn't. Add a root `tsconfig.json` with `"references"` to each package, or open the agent inside the package dir. Confirm:
-
-```json
-{"op": "get hover", "file_path": "packages/<pkg>/src/index.ts", "line": 0, "character": 0}
-```
-
-### Install succeeded but binary still not on `PATH`
-
-Installed to a dir (`~/.cargo/bin`, `~/.npm-global/bin`, `~/go/bin`) that the MCP server's env doesn't see. Shell rc only affects interactive shells.
-
-Export the directory in the environment that launches the agent (launchd on macOS, your service manager on Linux), then restart the MCP server. Confirm with `which <binary>` in that same environment.

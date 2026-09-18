@@ -2,36 +2,36 @@
   "$schema" : "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
   "skills" : [
     {
-      "description" : "Code context operations for symbol lookup, search, grep, call graph, and blast radius analysis. Use when the user says \"blast radius\", \"who calls this\", \"find symbol\", \"find references\", \"go to definition\", \"symbol lookup\", \"callgraph\", \"find callers\", \"what calls this function\", or \"what's affected if I change this\". Also use proactively before modifying code to understand structure, dependencies, and impact — list symbols and get callgraph (inbound) to see who calls a symbol, and get blastradius when changing a shared symbol's signature. Provides indexed, structural code intelligence that is faster and more precise than raw text search.",
-      "digest" : "sha256:8027ced34669651b989abbf9c5a899aec5e88e78c7e64b93fe18cabd84bace2f",
+      "description" : "Code context verbs for symbol lookup, search, grep, call graph, and blast radius analysis. Use when the user says \"blast radius\", \"who calls this\", \"find symbol\", \"find references\", \"go to definition\", \"symbol lookup\", \"callgraph\", \"find callers\", \"what calls this function\", or \"what's affected if I change this\". Also use before you change code, to know its structure, its callers and its impact: list the symbols of a file, get the inbound call graph of a symbol, and get the blast radius of a shared symbol. The index is faster and more exact than a raw text search.",
+      "digest" : "sha256:0b091fb72524d1f451c66f6095dac2c94803dba289b14362ab8b5bbe4ce0d1d4",
       "name" : "code-context",
       "type" : "skill-md",
       "url" : "/skills/code-context/SKILL.md"
     },
     {
       "description" : "Discover project types, build commands, test commands, and language-specific guidelines for the current workspace. Use when the user says \"what kind of project\", \"detect project\", \"build command\", \"test command\", \"project type\", asks what language or framework the code uses, or wants to know how to build, test, or format the project. Also use early in any session before making changes.",
-      "digest" : "sha256:b5830da34e5a5345942ec8c199c2f492f3f722102808eba7520c600457eec68c",
+      "digest" : "sha256:acf76cad124be09116bdd1cc0fb9e1b9b96b1e83aa95ce63e655e55a16d485e3",
       "name" : "detected-projects",
       "type" : "skill-md",
       "url" : "/skills/detected-projects/SKILL.md"
     },
     {
-      "description" : "Understand how unfamiliar code works before planning or changing it — its structure, behavior, data flow, and the blast radius of a change. Use when the user says \"explore\", \"investigate\", \"how does X work\", \"why does X happen\", \"where is X handled\", \"what calls X\", \"what would it take to change X\", or whenever you need to understand code before acting on it. Drives exploration with the code_context MCP tool — symbol search, callgraph traversal, and blast-radius analysis — instead of reading files top to bottom.",
-      "digest" : "sha256:60c62eb9132f116d8b1be71882c673528a231811d517c1a978bd5f48a45ba78e",
+      "description" : "Understand how unfamiliar code works before planning or changing it — its structure, behavior, data flow, and the blast radius of a change. Use when the user says \"explore\", \"investigate\", \"how does X work\", \"why does X happen\", \"where is X handled\", \"what calls X\", \"what would it take to change X\", or whenever you need to understand code before acting on it. Drives exploration with the `tools.code_context` verbs — symbol search, callgraph traversal, and blast-radius analysis — instead of reading files top to bottom.",
+      "digest" : "sha256:f3d100aa40dcce9117701e59280796c885c9badad7d334bba1b1abb99487c8b0",
       "name" : "explore",
       "type" : "skill-md",
       "url" : "/skills/explore/SKILL.md"
     },
     {
-      "description" : "Diagnose and install missing LSP servers for your project. Use when the user says \"lsp\", \"language servers\", \"check lsp\", or wants to ensure code intelligence is fully working. Also use when live code intelligence ops (get_hover, get_completions, go to definition) return degraded results from the tree-sitter layer instead of LSP, or when you see \"no code intelligence\", \"can't go to definition\", \"no type info available\", or \"source_layer: TreeSitter\" on ops that should have full LSP data.",
-      "digest" : "sha256:b024c33e1d6befe07939ab7822660d6f3b130128f7a40cf18780d458d9eec517",
+      "description" : "Diagnose the language servers of the workspace. Use when the user says \"lsp\", \"language servers\", \"check lsp\", or wants to make sure that code intelligence works. Also use when a position verb (`getHover`, `getDefinition`, `getReferences`) gives an empty result, or when `getCallgraph` gives no edges for code that clearly has callers.",
+      "digest" : "sha256:b5c2900a6bff07a73ef079044eeb3e511f545de1fdfb1fc429703632b275242c",
       "name" : "lsp",
       "type" : "skill-md",
       "url" : "/skills/lsp/SKILL.md"
     },
     {
       "description" : "Generate a visual architecture overview of the codebase with Mermaid diagrams. Produces ARCHITECTURE.md at repo root. Use when the user says \"map\", \"architecture\", \"overview\", or wants to understand the codebase structure.",
-      "digest" : "sha256:2c42ce4062887bd2946048b16945fe1b8bce7e90bd773d7cfed5c4fd9ec1819a",
+      "digest" : "sha256:6fcaa290edc19b59c556ef8a1a569e350a65800848be7a2286909cdc6c3aff2a",
       "name" : "map",
       "type" : "skill-md",
       "url" : "/skills/map/SKILL.md"
