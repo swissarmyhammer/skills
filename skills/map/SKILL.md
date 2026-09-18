@@ -2,7 +2,7 @@
 name: map
 description: Generate a visual architecture overview of the codebase with Mermaid diagrams. Produces ARCHITECTURE.md at repo root. Use when the user says "map", "architecture", "overview", or wants to understand the codebase structure.
 license: MIT OR Apache-2.0
-compatibility: Requires the `code_context` MCP tool for project detection, symbol enumeration, and callgraph traversal used to build the architecture diagram.
+compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 metadata:
   author: swissarmyhammer
   version: "1.0.0"
@@ -14,45 +14,42 @@ Generate a visual architecture overview and write `ARCHITECTURE.md` at the repo 
 
 ## Process
 
-Work with the `code_context` MCP tool to explore the codebase structure, key types, and call graphs. Use Mermaid syntax for diagrams that render on GitHub.
+Call the `tools.code_context` verbs in the `runCode` tool to explore the codebase structure, key types, and call graphs. Use Mermaid syntax for diagrams that render on GitHub.
 
 ### 1. Check index status
 
-```json
-{"op": "get status"}
+```js
+await tools.code_context.getStatus({});
 ```
 
 If TS or LSP indexing < 90%, wait and re-check — map quality depends on a fully indexed codebase.
 
 ### 2. Gather structural data
 
-**File inventory** + scale (use `get status` counts):
-```json
-{"op": "grep code", "pattern": ".", "max_results": 1}
+**File inventory** + scale (use `getStatus` counts):
+```js
+await tools.code_context.grepCode({ pattern: ".", maxResults: 1 });
 ```
 
 **Key symbols** — major types, traits, entry points:
-```json
-{"op": "search symbol", "kind": "struct", "query": "", "max_results": 50}
-{"op": "search symbol", "kind": "function", "query": "main", "max_results": 10}
-{"op": "search symbol", "kind": "trait", "query": "", "max_results": 30}
-{"op": "search symbol", "kind": "class", "query": "", "max_results": 30}
-{"op": "search symbol", "kind": "interface", "query": "", "max_results": 30}
+```js
+await tools.code_context.searchSymbol({ kind: "type", query: "", maxResults: 50 });
+await tools.code_context.searchSymbol({ kind: "function", query: "main", maxResults: 10 });
 ```
 
 **Module structure**:
-```json
-{"op": "list symbols", "file_path": "<entry-point>"}
+```js
+await tools.code_context.listSymbol({ file: "<entry-point>" });
 ```
 
 **Call graph** from entry points:
-```json
-{"op": "get callgraph", "symbol": "<entry-point>", "direction": "outbound", "max_depth": 2}
+```js
+await tools.code_context.getCallgraph({ symbol: "<entry-point>", direction: "outbound", maxDepth: 2 });
 ```
 
 **Dependencies**:
-```json
-{"op": "get blastradius", "file_path": "<key-file>", "max_hops": 2}
+```js
+await tools.code_context.getBlastradius({ file: "<key-file>", maxHops: 2 });
 ```
 
 ### 3. Read project config
