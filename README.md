@@ -23,8 +23,3 @@ where Claude Code finds the agents of a plugin. An agent preloads the skills
 of this marketplace that its `skills:` key names, and its body includes the
 same `_partials/sah-` partials as the skills. Every agent body also renders
 untrusted.
-
-## License
-
-`MIT OR Apache-2.0`. Read [LICENSE-MIT](LICENSE-MIT) and
-[LICENSE-APACHE](LICENSE-APACHE).
