@@ -100,6 +100,40 @@ await tools.code_context.rebuildIndex({ layer: "treesitter" });
 Then `searchCode` answers with an error that says the embedding layer is off:
 use `grepCode` and `searchSymbol`.
 
+## A language server does not have every verb
+
+The verbs have two sources, and they do not fail in the same way.
+
+- **The index verbs** read the symbol index, which comes from tree-sitter:
+  `getSymbol`, `searchSymbol`, `listSymbol`, `grepCode`, `queryAst` and
+  `findDuplicates`. They work for each language that the host parses.
+- **The position verbs** ask the language server of that one language. A server
+  answers only the methods that it has. For a method that it does not have, it
+  answers "method not found", and the verb then gives you nothing. Your file,
+  your line and your character were correct. Do not try that verb again for the
+  same language in the same session.
+
+| Language, server | The server does not have |
+|---|---|
+| Python, `pylsp` | call hierarchy (`getCallgraph` edges from the server, `getInboundCalls`), `searchWorkspaceSymbol`, `getImplementations` |
+
+`pylsp` does have `getDefinition`, `getTypeDefinition`, `getReferences`,
+`getHover`, `listSymbol`, `getRenameEdits` and `getCodeActions`.
+
+**Thus, on a Python repository:**
+
+- For the callers of a symbol, use `getReferences` at the position of its name.
+  Each result is a use of that symbol, and a caller is one kind of use.
+- For a name across the whole workspace, use `searchSymbol`, which reads the
+  index. Do not use `searchWorkspaceSymbol`.
+- For the reach of a change, use `getReferences` for the symbol itself, and
+  `grepCode` for its name. An empty `getCallgraph` or `getBlastradius` on
+  Python code says nothing about the code.
+
+The host does not read the capabilities of a server, thus no verb warns you
+first. An empty answer from one position verb, where another position verb on
+the same file answers, is the sign.
+
 ## The index fills in the background
 
 The index starts when the session starts, and a large repository takes some
@@ -112,9 +146,10 @@ minutes. `getStatus({})` gives the progress. Do not wait for it:
 - The live language server verbs (`getDefinition`, `getHover`, `getReferences`,
   `searchWorkspaceSymbol`) work immediately.
 - An empty `getCallgraph` or `getBlastradius` for code that clearly has callers
-  means that the language server layer is not complete. Look at
-  `getLspStatus({})`, and use `getReferences` or `getInboundCalls` at the
-  position of the symbol.
+  has two possible causes: the language server layer is not complete yet, or
+  the server of that language has no call hierarchy at all (`pylsp` has none).
+  Either way, use `getReferences` at the position of the symbol. Look at
+  `getLspStatus({})` only to see whether the server runs.
 
 ## When to use the file verbs
 
@@ -133,5 +168,12 @@ const callers = await tools.code_context.getCallgraph({ symbol: "authenticate", 
 return { found, callers };
 ```
 
-Then get the blast radius of the file that `found` names, and report the
-definition, the callers, and the files that the change affects.
+If `callers` is empty, ask the language server at the position of the name:
+
+```js
+const uses = await tools.code_context.getReferences({ file: "a/auth.py", line: 41, character: 8, maxResults: 50 });
+return uses;
+```
+
+Then report the definition, the callers or the uses, and the files that the
+change affects.
