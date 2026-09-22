@@ -86,13 +86,12 @@ healthy. Where a method is absent the host uses another way when it has one.
 | Language, server | The server does not have | What happens |
 |---|---|---|
 | Python, `pylsp` | call hierarchy | The callers come from references. `getCallgraph`, `getBlastradius` and `getInboundCalls` answer. |
-| Python, `pylsp` | `searchWorkspaceSymbol` | Empty result. Use `searchSymbol`, from the index. |
-| Python, `pylsp` | `getImplementations` | Empty result. Use `getReferences` and read each result. |
+| Python, `pylsp` | `searchWorkspaceSymbol` | Empty result with `notSupportedReason`. Use `searchSymbol`, from the index. |
+| Python, `pylsp` | `getImplementations` | Empty result with `notSupportedReason`. Use `getReferences` and read each result. |
 
-An empty result does not say whether the server lacks the method or the code
-holds no match. Say which verb gave nothing, and confirm with a second verb
-before you report a conclusion. This is not a fault to repair, and
-`rebuildIndex` does not change it.
+`notSupportedReason` tells the two cases apart: with the field, the server
+lacks the method; without it, the code holds no match. This is not a fault to
+repair, and `rebuildIndex` does not change it.
 
 ### The call graph is empty, and the servers run
 

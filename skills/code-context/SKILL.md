@@ -120,7 +120,7 @@ another way when it has one.
 | Language, server | The server does not have | What the host does |
 |---|---|---|
 | Python, `pylsp` | call hierarchy | The callers come from `getReferences` instead. `getCallgraph`, `getBlastradius` and `getInboundCalls` all answer. |
-| Python, `pylsp` | `searchWorkspaceSymbol`, `getImplementations` | The verb answers with an empty result. |
+| Python, `pylsp` | `searchWorkspaceSymbol`, `getImplementations` | The verb answers with an empty result, and a `notSupportedReason` that says so. |
 
 `pylsp` does have `getDefinition`, `getTypeDefinition`, `getReferences`,
 `getHover`, `listSymbol`, `getRenameEdits` and `getCodeActions`.
@@ -128,17 +128,17 @@ another way when it has one.
 **Thus, on a Python repository:**
 
 - The call verbs work. `getCallgraph({ symbol, direction: "inbound" })` and
-  `getBlastradius` read the index, thus a caller that you added a moment ago
-  shows only after the file of the callee is indexed again. `getInboundCalls`
-  asks the server at the position and has no such delay, thus it is the verb
-  for a fresh answer.
+  `getBlastradius` read the index; `getInboundCalls` asks the server at the
+  position, thus it is the verb for the freshest answer. Measured on a Python
+  workspace on 2026-09-22: `getInboundCalls` gave both callers with
+  `sourceLayer: "liveLSP"`, and `getCallgraph` gave the same two callers with
+  `source: "lsp"` edges.
 - For a name across the whole workspace, use `searchSymbol`, which reads the
-  index. `searchWorkspaceSymbol` gives an empty result here.
-- **An empty result does not say which of two things happened.** It can mean
-  "the server has no such method", and it can mean "there is nothing to
-  find". When a verb answers empty, do not decide from it alone: ask another
-  verb the same question, such as `getReferences` at the position, or
-  `grepCode` for the name.
+  index and matches loosely. `searchWorkspaceSymbol` answers empty here, with
+  a `notSupportedReason`.
+- **Read `notSupportedReason` before you believe an empty result.** With the
+  field, the server has no such method, thus ask another verb. Without it,
+  the answer is "nothing to find", thus the code holds no match.
 
 ## The index fills in the background
 

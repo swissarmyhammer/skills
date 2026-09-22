@@ -39,7 +39,7 @@ await tools.code_context.getStatus({});
 
 Note which layers are active. Live LSP ops (`getDefinition`, `getHover`, `getReferences`) work immediately — don't wait for indexing. If LSP unavailable, results come from tree-sitter. Check `getLspStatus` to see whether each server runs.
 
-**A server answers only the methods it has**, and the host asks only for those. Where a method is absent it uses another way when it has one: Python's `pylsp` has no call hierarchy, so the callers come from references and `getCallgraph`, `getBlastradius` and `getInboundCalls` all answer. `searchWorkspaceSymbol` and `getImplementations` give an empty result on Python — use `searchSymbol` for a name. An empty result never says whether the server lacks the method or the code has no match, so confirm with a second verb before you conclude.
+**A server answers only the methods it has**, and the host asks only for those. Where a method is absent it uses another way when it has one: Python's `pylsp` has no call hierarchy, so the callers come from references and `getCallgraph`, `getBlastradius` and `getInboundCalls` all answer. `searchWorkspaceSymbol` and `getImplementations` answer empty on Python, with a `notSupportedReason` that says the server lacks the method — use `searchSymbol` for a name. An empty result WITHOUT that field means the code holds no match.
 
 If `ARCHITECTURE.md` exists at the project root, read it now (per the Architecture Awareness guidance) — it gives the system map before tracing individual symbols.
 
@@ -88,7 +88,7 @@ All usages:
 await tools.code_context.getReferences({ file: "<file>", line: <line>, character: <col> });
 ```
 
-**Looking for**: the path data takes through the system. `getInboundCalls` asks the server now; `getCallgraph` reads the indexed edges for broader traversal. Where a server has no call hierarchy, such as Python, both still answer, from references. A caller added a moment ago reaches `getCallgraph` only after the file of the callee is indexed again, so use `getInboundCalls` for a fresh answer.
+**Looking for**: the path data takes through the system. `getInboundCalls` asks the server now; `getCallgraph` reads the indexed edges for broader traversal. Where a server has no call hierarchy, such as Python, both still answer, from references.
 
 ### Scope — measure the blast radius
 

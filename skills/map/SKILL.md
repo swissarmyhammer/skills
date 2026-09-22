@@ -52,7 +52,7 @@ await tools.code_context.getCallgraph({ symbol: "<entry-point>", direction: "out
 await tools.code_context.getBlastradius({ file: "<key-file>", maxHops: 2 });
 ```
 
-Both read the indexed call edges. Where a server has no call hierarchy, such as Python's `pylsp`, those edges come from references instead, thus both still answer — after the index pass. If they answer empty early in a session, wait for `getStatus` to show the index further along, or build the flows from `getInboundCalls` at the entry points and from the imports of each module.
+Both read the indexed call edges. Where a server has no call hierarchy, such as Python's `pylsp`, those edges come from references instead, thus both still answer — after the index pass. If they answer empty early in a session, wait for `getStatus` to show the index further along, or ask `getInboundCalls` at the entry points, which goes to the server and needs no index.
 
 ### 3. Read project config
 
