@@ -54,11 +54,15 @@ return { servers, projects, index };
 
 ### 4. Verify with a live verb
 
+Ask for a definition at the name of a symbol that you know:
+
 ```js
-return await tools.code_context.searchWorkspaceSymbol({ query: "main" });
+return await tools.code_context.getDefinition({ file: "<file>", line: <line>, character: <col> });
 ```
 
-A result that is not empty shows that a language server answers.
+A result that is not empty shows that a language server answers. Do not verify
+with `searchWorkspaceSymbol`: a server may not have that method, and Python's
+`pylsp` does not.
 
 ## Troubleshooting
 
@@ -72,6 +76,21 @@ is some minutes. Try again later. Make sure that `line` and `character` are
 
 `clangd` needs a `compile_commands.json` file. Without it, use the tree-sitter
 verbs for C and C++ files.
+
+### A verb gives nothing, and the server runs
+
+A server answers only the methods that it has. For a method that it does not
+have, it answers "method not found", and the verb gives you nothing. The state
+in `getLspStatus` stays `running`, because the server is healthy.
+
+| Language, server | The server does not have | Use instead |
+|---|---|---|
+| Python, `pylsp` | call hierarchy (`getCallgraph` edges from the server, `getInboundCalls`) | `getReferences` at the position |
+| Python, `pylsp` | `searchWorkspaceSymbol` | `searchSymbol`, from the index |
+| Python, `pylsp` | `getImplementations` | `getReferences`, then read each result |
+
+This is not a fault to repair, and `rebuildIndex` does not change it. Report
+the verb, the language, and the verb to use instead.
 
 ### The call graph is empty, and the servers run
 

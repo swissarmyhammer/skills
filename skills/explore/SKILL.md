@@ -37,7 +37,9 @@ Each verb below is a code-mode call. Make the calls in the `runCode` tool, as Ja
 await tools.code_context.getStatus({});
 ```
 
-Note which layers are active. Live LSP ops (`getDefinition`, `getHover`, `searchWorkspaceSymbol`) work immediately — don't wait for indexing. If LSP unavailable, results come from tree-sitter. Check `getLspStatus` to see per-language coverage.
+Note which layers are active. Live LSP ops (`getDefinition`, `getHover`, `getReferences`) work immediately — don't wait for indexing. If LSP unavailable, results come from tree-sitter. Check `getLspStatus` to see whether each server runs.
+
+**A server answers only the methods it has.** For a method it lacks it answers "method not found", and that verb gives you nothing however correct your position is. Python's `pylsp` has no call hierarchy (`getCallgraph` from the server, `getInboundCalls`), no `searchWorkspaceSymbol` and no `getImplementations`; it does have `getDefinition`, `getTypeDefinition`, `getReferences` and `getHover`. On Python, use `searchSymbol` for a name, and `getReferences` for callers. Don't repeat a verb that already gave nothing for that language.
 
 If `ARCHITECTURE.md` exists at the project root, read it now (per the Architecture Awareness guidance) — it gives the system map before tracing individual symbols.
 
@@ -49,12 +51,14 @@ Broad first. Use domain keywords:
 await tools.code_context.searchSymbol({ query: "<domain keyword>", maxResults: 15 });
 ```
 
-If the index is building and `searchSymbol` is sparse, use the live alternative:
+If the index is building and `searchSymbol` is sparse, widen the search:
 
 ```js
-await tools.code_context.searchWorkspaceSymbol({ query: "<domain keyword>" });
+await tools.code_context.grepCode({ pattern: "<domain keyword>", maxResults: 20 });
 await tools.code_context.listSymbol({ file: "<key file>" });
 ```
+
+`searchWorkspaceSymbol` is the live alternative where the server has it. Python's `pylsp` does not.
 
 **Looking for**: the nouns and verbs of the problem — structs, traits, functions that participate.
 
@@ -84,7 +88,7 @@ All usages:
 await tools.code_context.getReferences({ file: "<file>", line: <line>, character: <col> });
 ```
 
-**Looking for**: the path data takes through the system. `getInboundCalls` is live LSP precision for "who calls this"; `getCallgraph` uses indexed edges for broader traversal.
+**Looking for**: the path data takes through the system. `getInboundCalls` is live LSP precision for "who calls this"; `getCallgraph` uses indexed edges for broader traversal. Both need a server with call hierarchy. Where there is none, such as Python, `getReferences` is the answer to "who calls this".
 
 ### Scope — measure the blast radius
 
@@ -93,6 +97,8 @@ await tools.code_context.getBlastradius({ file: "<target>", maxHops: 3 });
 ```
 
 Supplement with `getReferences` — blast radius follows call edges, but references also catch type usage, field access, and trait impls.
+
+An empty radius is not "nothing is affected". Where the server has no call hierarchy, such as Python, the edges do not exist at all: measure the reach with `getReferences` on the symbol and `grepCode` on its name instead.
 
 **Looking for**: how far a change propagates. If the radius surprises you, you don't understand the code yet — back to step 3.
 
@@ -140,7 +146,7 @@ Use `tools.files.read`, `tools.files.grep` and `tools.files.glob` only for:
 - Non-code files (TOML, YAML, JSON, Markdown)
 - Confirming exact syntax after code-context gave you the location
 
-**Don't** start by reading files top to bottom. Start with `searchSymbol` (or `searchWorkspaceSymbol` while indexing) and `getCallgraph`; use `getDefinition`/`getHover` to inspect specifics.
+**Don't** start by reading files top to bottom. Start with `searchSymbol` and `grepCode`, then `getCallgraph` where the language has call hierarchy and `getReferences` where it does not; use `getDefinition`/`getHover` to inspect specifics.
 
 ## When to Recurse
 
@@ -173,7 +179,7 @@ Exploration complete. Deletion gap → `/tdd` or `/task`.
 ## Constraints
 
 - **Don't write code during exploration.** Hand off.
-- **Don't skip blast radius.** It's where surprises surface.
+- **Don't skip blast radius.** It's where surprises surface. Where the language server has no call hierarchy, measure it with `getReferences` and `grepCode` — but measure it.
 - **Don't read files top to bottom.** Use the `tools.code_context` verbs to find the right code, inspect what matters.
 - **Don't explore forever.** 3 loops without convergence → stop, say what's unclear, ask the user.
 - **Don't use exploration to avoid acting.** Once you can explain how/where/what-it-touches, move to planning or implementation.

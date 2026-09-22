@@ -52,6 +52,8 @@ await tools.code_context.getCallgraph({ symbol: "<entry-point>", direction: "out
 await tools.code_context.getBlastradius({ file: "<key-file>", maxHops: 2 });
 ```
 
+Both need a language server with call hierarchy. Python's `pylsp` has none, thus both answer empty on a Python repository. Build the flows there from `getReferences` at the entry points, from `grepCode` on the names of the key symbols, and from the imports of each module.
+
 ### 3. Read project config
 
 `Cargo.toml` / `package.json` / `go.mod` / `pyproject.toml`, and entry points (`main.rs`, `lib.rs`, `index.ts`, `main.go`, etc.).
@@ -163,6 +165,7 @@ Diagrams render on GitHub, VS Code, Obsidian.
 - Diagrams must be valid Mermaid that renders on GitHub.
 - Architecture, not implementation — show the forest.
 - Back every claim with a query result, not a guess.
+- An empty call graph is not a claim. Say which verb gave nothing, and draw the flows from the results that you do have.
 - Monorepo/workspace: workspace view first, then drill into key packages.
 - **Scoped mapping**: if the user gives a scope — `$ARGUMENTS` — limit the queries and the output to that subdirectory or module.
 - Path/module argument → scope the map.

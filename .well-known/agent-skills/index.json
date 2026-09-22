@@ -3,7 +3,7 @@
   "skills" : [
     {
       "description" : "Code context verbs for symbol lookup, search, grep, call graph, and blast radius analysis. Use when the user says \"blast radius\", \"who calls this\", \"find symbol\", \"find references\", \"go to definition\", \"symbol lookup\", \"callgraph\", \"find callers\", \"what calls this function\", or \"what's affected if I change this\". Also use before you change code, to know its structure, its callers and its impact: list the symbols of a file, get the inbound call graph of a symbol, and get the blast radius of a shared symbol. The index is faster and more exact than a raw text search.",
-      "digest" : "sha256:30cb2c1dce76d6cdc8c1dcb506f54ee9ee843dc6a3f344a432e87d06bd502dbb",
+      "digest" : "sha256:041c3fb12e212be513f32fe34219ac17f9c7f3907905f127a9018517ac149b6e",
       "name" : "code-context",
       "type" : "skill-md",
       "url" : "/skills/code-context/SKILL.md"
@@ -17,21 +17,21 @@
     },
     {
       "description" : "Understand how unfamiliar code works before planning or changing it — its structure, behavior, data flow, and the blast radius of a change. Use when the user says \"explore\", \"investigate\", \"how does X work\", \"why does X happen\", \"where is X handled\", \"what calls X\", \"what would it take to change X\", or whenever you need to understand code before acting on it. Drives exploration with the `tools.code_context` verbs — symbol search, callgraph traversal, and blast-radius analysis — instead of reading files top to bottom.",
-      "digest" : "sha256:f3d100aa40dcce9117701e59280796c885c9badad7d334bba1b1abb99487c8b0",
+      "digest" : "sha256:d7c87f43c364bb3ed1d963c2710b0122ed93c123774afbc11a6d39ed2127ba26",
       "name" : "explore",
       "type" : "skill-md",
       "url" : "/skills/explore/SKILL.md"
     },
     {
       "description" : "Diagnose the language servers of the workspace. Use when the user says \"lsp\", \"language servers\", \"check lsp\", or wants to make sure that code intelligence works. Also use when a position verb (`getHover`, `getDefinition`, `getReferences`) gives an empty result, or when `getCallgraph` gives no edges for code that clearly has callers.",
-      "digest" : "sha256:b5c2900a6bff07a73ef079044eeb3e511f545de1fdfb1fc429703632b275242c",
+      "digest" : "sha256:6d3fd7ed0a8c9ffac49ea5ec0279915591dc5c61c5b7c606fedafca1e5ccf62c",
       "name" : "lsp",
       "type" : "skill-md",
       "url" : "/skills/lsp/SKILL.md"
     },
     {
       "description" : "Generate a visual architecture overview of the codebase with Mermaid diagrams. Produces ARCHITECTURE.md at repo root. Use when the user says \"map\", \"architecture\", \"overview\", or wants to understand the codebase structure.",
-      "digest" : "sha256:6fcaa290edc19b59c556ef8a1a569e350a65800848be7a2286909cdc6c3aff2a",
+      "digest" : "sha256:6a3687daab03545af363e5fb9f7fd1fc67365ca4c31c9f690538f854abc0efef",
       "name" : "map",
       "type" : "skill-md",
       "url" : "/skills/map/SKILL.md"
