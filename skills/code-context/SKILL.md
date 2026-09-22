@@ -113,26 +113,32 @@ The verbs have two sources, and they do not fail in the same way.
   your line and your character were correct. Do not try that verb again for the
   same language in the same session.
 
-| Language, server | The server does not have |
-|---|---|
-| Python, `pylsp` | call hierarchy (`getCallgraph` edges from the server, `getInboundCalls`), `searchWorkspaceSymbol`, `getImplementations` |
+The host reads the capabilities of each server, thus it never asks for a
+method that the server does not have. Where a method is absent, the host uses
+another way when it has one.
+
+| Language, server | The server does not have | What the host does |
+|---|---|---|
+| Python, `pylsp` | call hierarchy | The callers come from `getReferences` instead. `getCallgraph`, `getBlastradius` and `getInboundCalls` all answer. |
+| Python, `pylsp` | `searchWorkspaceSymbol`, `getImplementations` | The verb answers with an empty result. |
 
 `pylsp` does have `getDefinition`, `getTypeDefinition`, `getReferences`,
 `getHover`, `listSymbol`, `getRenameEdits` and `getCodeActions`.
 
 **Thus, on a Python repository:**
 
-- For the callers of a symbol, use `getReferences` at the position of its name.
-  Each result is a use of that symbol, and a caller is one kind of use.
+- The call verbs work. `getCallgraph({ symbol, direction: "inbound" })` and
+  `getBlastradius` read the index, thus a caller that you added a moment ago
+  shows only after the file of the callee is indexed again. `getInboundCalls`
+  asks the server at the position and has no such delay, thus it is the verb
+  for a fresh answer.
 - For a name across the whole workspace, use `searchSymbol`, which reads the
-  index. Do not use `searchWorkspaceSymbol`.
-- For the reach of a change, use `getReferences` for the symbol itself, and
-  `grepCode` for its name. An empty `getCallgraph` or `getBlastradius` on
-  Python code says nothing about the code.
-
-The host does not read the capabilities of a server, thus no verb warns you
-first. An empty answer from one position verb, where another position verb on
-the same file answers, is the sign.
+  index. `searchWorkspaceSymbol` gives an empty result here.
+- **An empty result does not say which of two things happened.** It can mean
+  "the server has no such method", and it can mean "there is nothing to
+  find". When a verb answers empty, do not decide from it alone: ask another
+  verb the same question, such as `getReferences` at the position, or
+  `grepCode` for the name.
 
 ## The index fills in the background
 
