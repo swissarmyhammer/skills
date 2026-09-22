@@ -79,18 +79,20 @@ verbs for C and C++ files.
 
 ### A verb gives nothing, and the server runs
 
-A server answers only the methods that it has. For a method that it does not
-have, it answers "method not found", and the verb gives you nothing. The state
-in `getLspStatus` stays `running`, because the server is healthy.
+A server answers only the methods that it has, and the host asks only for
+those. The state in `getLspStatus` stays `running`, because the server is
+healthy. Where a method is absent the host uses another way when it has one.
 
-| Language, server | The server does not have | Use instead |
+| Language, server | The server does not have | What happens |
 |---|---|---|
-| Python, `pylsp` | call hierarchy (`getCallgraph` edges from the server, `getInboundCalls`) | `getReferences` at the position |
-| Python, `pylsp` | `searchWorkspaceSymbol` | `searchSymbol`, from the index |
-| Python, `pylsp` | `getImplementations` | `getReferences`, then read each result |
+| Python, `pylsp` | call hierarchy | The callers come from references. `getCallgraph`, `getBlastradius` and `getInboundCalls` answer. |
+| Python, `pylsp` | `searchWorkspaceSymbol` | Empty result. Use `searchSymbol`, from the index. |
+| Python, `pylsp` | `getImplementations` | Empty result. Use `getReferences` and read each result. |
 
-This is not a fault to repair, and `rebuildIndex` does not change it. Report
-the verb, the language, and the verb to use instead.
+An empty result does not say whether the server lacks the method or the code
+holds no match. Say which verb gave nothing, and confirm with a second verb
+before you report a conclusion. This is not a fault to repair, and
+`rebuildIndex` does not change it.
 
 ### The call graph is empty, and the servers run
 
