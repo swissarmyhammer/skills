@@ -13,6 +13,16 @@ no filters. To use these skills, add the marketplace URL to your host with the
 skills marketplace add https://github.com/swissarmyhammer/skills.git
 ```
 
+## Agents
+
+The repository also holds the swissarmyhammer sub-agents, in `agents/`, one
+`<name>.md` file for each agent: YAML frontmatter and a body that is the
+system prompt of the agent. The folder is at the root of the plugin, which is
+where Claude Code finds the agents of a plugin. An agent preloads the skills
+of this marketplace that its `skills:` key names, and its body includes the
+same `_partials/sah-` partials as the skills. Every agent body also renders
+untrusted.
+
 ## License
 
 `MIT OR Apache-2.0`. Read [LICENSE-MIT](LICENSE-MIT) and
