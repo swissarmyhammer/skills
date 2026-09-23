@@ -45,10 +45,21 @@ follow-up in one snippet.
 - **Before you read a file:** `listSymbol({ file })` gives the table of
   contents. Then `getSymbol({ query })` gives only the source text that you
   need. A full file read is the fallback.
-- **To find code by name:** `searchSymbol({ query, kind })` is a fuzzy match.
-  `kind` is `"function"`, `"method"`, `"type"` or `"other"`.
-- **To find code by pattern:** `grepCode({ pattern, filePattern })` runs a
-  regular expression on the indexed chunks.
+- **To find a definition by name:** `searchSymbol({ query, kind })` is a fuzzy
+  match, and `getSymbol({ query })` gives the source of the match. Each result
+  is that one symbol: a method comes back as the method, with its own lines,
+  not as the class around it. `kind` is `"function"`, `"method"`, `"type"` or
+  `"other"`. Do not search for `def name` or `class Name` with a pattern: that
+  is a name, and these two verbs find names exactly.
+- **To find which code holds a pattern:** `grepCode({ pattern, filePattern })`
+  runs a regular expression on the indexed chunks. Each hit comes back as the
+  whole OUTERMOST symbol that holds the match. A hit in a method of a large
+  class returns the entire class — in Django's `Model`, 1,700 lines. Use
+  `grepCode` to learn WHICH symbols hold a text, then `getSymbol` for the one
+  that you need.
+- **To find the exact lines of a text:** `tools.files.grep` answers with each
+  matching line and its line number. That is the better verb when you want
+  lines, not symbols.
 - **Before you change a symbol:** `getCallgraph({ symbol, direction: "inbound" })`
   gives its callers. For a shared or public symbol, also
   `getBlastradius({ file, symbol })`. If the result is a surprise, you do not
@@ -68,7 +79,7 @@ await tools.code_context.searchSymbol({ query: "handler", kind: "function", maxR
 await tools.code_context.listSymbol({ file: "django/db/models/base.py" });
 
 // Text and structure, from the index
-await tools.code_context.grepCode({ pattern: "def get_.*queryset", filePattern: "*.py", maxResults: 20 });
+await tools.code_context.grepCode({ pattern: "raise ValueError\\(.*primary key", filePattern: "*.py", maxResults: 20 });
 await tools.code_context.searchCode({ query: "where the admin builds the app list", topK: 10 });
 await tools.code_context.queryAst({ language: "python", astQuery: "(function_definition) @function" });
 await tools.code_context.findDuplicates({ file: "src/parser.py" });
@@ -152,16 +163,16 @@ minutes. `getStatus({})` gives the progress. Do not wait for it:
 - The live language server verbs (`getDefinition`, `getHover`, `getReferences`,
   `searchWorkspaceSymbol`) work immediately.
 - An empty `getCallgraph` or `getBlastradius` for code that clearly has callers
-  has two possible causes: the language server layer is not complete yet, or
-  the server of that language has no call hierarchy at all (`pylsp` has none).
-  Either way, use `getReferences` at the position of the symbol. Look at
-  `getLspStatus({})` only to see whether the server runs.
+  usually means that the language server layer is not complete yet. Use
+  `getInboundCalls` at the position of the symbol, which asks the server now.
+  Look at `getLspStatus({})` only to see whether the server runs.
 
 ## When to use the file verbs
 
 Use `tools.files.read` and `tools.files.grep` for files that are not code (TOML,
-YAML, Markdown), for string literals and configuration values, and to see the
-exact text after a code context verb gave you the location.
+YAML, Markdown), for string literals and configuration values, to find the
+exact lines where a text appears, and to see the exact text after a code
+context verb gave you the location.
 
 ## Example
 
