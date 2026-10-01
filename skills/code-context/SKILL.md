@@ -53,8 +53,9 @@ follow-up in one snippet.
   is a name, and these two verbs find names exactly.
 - **To find which code holds a pattern:** `grepCode({ pattern, filePattern })`
   runs a regular expression on the indexed chunks. Each hit comes back as the
-  whole OUTERMOST symbol that holds the match. A hit in a method of a large
-  class returns the entire class — in Django's `Model`, 1,700 lines. Use
+  INNERMOST symbol that holds the match: a hit in a method comes back as that
+  method, with its own lines, not as the class around it. A hit outside every
+  method, for example on the `class` line, comes back as the class. Use
   `grepCode` to learn WHICH symbols hold a text, then `getSymbol` for the one
   that you need.
 - **To find the exact lines of a text:** `tools.files.grep` answers with each

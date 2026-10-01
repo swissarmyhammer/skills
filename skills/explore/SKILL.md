@@ -58,7 +58,7 @@ await tools.code_context.grepCode({ pattern: "<domain keyword>", maxResults: 20 
 await tools.code_context.listSymbol({ file: "<key file>" });
 ```
 
-A `grepCode` hit comes back as the whole outermost symbol that holds it — a hit in one method of a large class returns the entire class. Read it for WHICH symbols matter, then `getSymbol` the one you need. To find a method or class by name, use `searchSymbol` or `getSymbol`, never a pattern like `def name`. For the exact lines of a text, `tools.files.grep` is the better verb.
+A `grepCode` hit comes back as the innermost symbol that holds it — a hit in one method returns that method, not the class around it. Read it for WHICH symbols matter, then `getSymbol` the one you need. To find a method or class by name, use `searchSymbol` or `getSymbol`, never a pattern like `def name`. For the exact lines of a text, `tools.files.grep` is the better verb.
 
 `searchWorkspaceSymbol` is the live alternative where the server has it. On Python it answers empty.
 
