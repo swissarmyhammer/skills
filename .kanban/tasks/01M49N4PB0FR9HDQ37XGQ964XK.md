@@ -11,8 +11,61 @@ comments:
     - Tier 2 (optional selection): a small model session gets the candidate ids and descriptions and answers `{"ids": [...]}` (`Search/SelectionSessionRequest.swift`). If the answer does not decode, the agent uses the retrieval rank. It is not known which tier the ACP agent uses in the bench. Not checked in this session.
     - Conclusion: change the descriptions, not the ranker. Make the code-context description narrower (it has many trigger words). If possible, add a skill whose description matches "edit" and "fix".
   timestamp: 2026-10-06T22:26:19.161964+00:00
-position_column: todo
-position_ordinal: '8180'
+- actor: wballard
+  id: 01m49np5khv8rkj195m5qvgx92
+  text: |-
+    ### Research: the search that the ACP agent uses
+
+    - `ToolCatalog.makeSkillsTool` (FoundationModelsACPAgent) calls `SkillsTool.make(registry:session:)` with NO embedder. Thus the retrieval tier is keyword (BM25) + trigram, fused with RRF. There is no cosine signal in the bench.
+    - With a session, the searcher is in `.auto` mode: a selection tier on the `flash` model answers each search. A second searcher in `.retrieval` mode over the same index is the fallback (`SkillsToolAssembly.makeContext`).
+    - The search text is `renderBlock()`: the skill id, the `description`, and a "Parameters:" line. The skill id `code-context` holds the token "code". Thus a query with "code" always gets a match on the id.
+
+    ### How I measured
+
+    - I made a small Swift package in my scratchpad (not in any repo). It has a path dependency on `/Users/wballard/github/swissarmyhammer/FoundationModelsSkills`. It builds `SkillsRegistry` over one `.defaults` layer at `skills/`, calls the public `SkillsTool.make(registry:followReloads:)` (retrieval tier, no embedder, model-visible skills), and runs `skill search --query <q>` through `OperationCLIDriver`. This is the same retrieval tier as the bench, with the same five skills. `git status` in FoundationModelsSkills is clean after the build.
+    - I did NOT measure the selection tier. It needs the `flash` model of the bench profile, and I did not run that model.
+
+    ### Ranks BEFORE the change (retrieval tier)
+
+    - "edit a file apply a patch" -> code-context explore lsp map detected-projects
+    - "fix a bug in source file" -> code-context detected-projects explore lsp map
+    - "fix bug in code" -> code-context detected-projects lsp explore map
+    - "find symbol" -> code-context ...
+    - "code context symbol lookup" -> code-context ...
+
+    ### What did not work fully
+
+    - Only a narrower code-context description moved the first two queries to explore first. "fix bug in code" stayed code-context first: "fix" and "bug" matched no skill, and "code" matches the id `code-context`. A description change cannot remove a token from the id. Removing "Code context" from the description start did not change any rank, thus I kept that wording.
+    - Then I added "where is the bug" and "fix a bug in it" to the explore description. To find the code of a bug is a real use of explore, thus this is not a change only for the rank.
+    - I did not add a new edit or fix skill. I do not know the edit verbs of the code-mode host well enough to write a correct skill, and explore now gets the "fix" queries.
+  timestamp: 2026-10-06T22:34:59.057083+00:00
+- actor: wballard
+  id: 01m49np8gm3h6w1xb1hybtn9nk
+  text: |-
+    ### Ranks AFTER the change (retrieval tier, measured)
+
+    - "edit a file apply a patch" -> explore lsp code-context map detected-projects
+    - "fix a bug in source file" -> explore detected-projects code-context lsp map
+    - "fix bug in code" -> explore code-context detected-projects lsp map
+    - "find symbol" -> code-context explore detected-projects map lsp
+    - "code context symbol lookup" -> code-context explore lsp detected-projects map
+    - "find symbol and references in code" -> code-context explore lsp detected-projects map
+    - "find symbol, search code" -> code-context explore lsp detected-projects map
+    - "find symbol ResolverMatch" -> code-context explore map lsp detected-projects
+    - "explore codebase find issue" -> explore code-context map detected-projects lsp
+    - "explore Django code" -> explore code-context detected-projects lsp map
+
+    Limit: these ranks are for the retrieval tier only. The bench also runs a selection tier on the `flash` model. I did not measure that tier.
+  timestamp: 2026-10-06T22:35:02.036217+00:00
+- actor: wballard
+  id: 01m49npj46thc1r49cdjj4hj5g
+  text: |-
+    ### implement — changed
+    - evidence: 2 files — skills/code-context/SKILL.md (description: removed "before you change code", "what's affected if I change this", "list the symbols of a file"; kept the lookup trigger phrases), skills/explore/SKILL.md (description: added "where is the bug" and "fix a bug in it"). Retrieval-tier ranks measured with a scratch harness over FoundationModelsSkills (path dependency, read-only repo not changed): the edit/fix queries rank explore first; the lookup queries rank code-context first. Selection tier (flash model) not measured. No new skill added. No commit.
+    - next: /review
+  timestamp: 2026-10-06T22:35:11.878327+00:00
+position_column: doing
+position_ordinal: '80'
 title: A skill search for "edit" or "fix" must not return the code-context skill first
 ---
 ## Problem
@@ -37,7 +90,7 @@ The source of this data is a report from the FoundationModelsACPAgent session (2
 
 ## Acceptance criteria
 
-- [ ] The ranking method of `search skill` in the host is known and written in this task.
-- [ ] A `search skill` for "edit a file apply a patch" and for "fix a bug in source file" does not return code-context first.
-- [ ] A `search skill` for "find symbol" and for "code context symbol lookup" still returns code-context first.
-- [ ] All the changed text is in ASD-STE100 Simplified Technical English. #skills
+- [x] The ranking method of `search skill` in the host is known and written in this task.
+- [x] A `search skill` for "edit a file apply a patch" and for "fix a bug in source file" does not return code-context first. (Measured on the retrieval tier only. The selection tier on the `flash` model is not measured. See the comments.)
+- [x] A `search skill` for "find symbol" and for "code context symbol lookup" still returns code-context first. (Measured on the retrieval tier only. The selection tier on the `flash` model is not measured. See the comments.)
+- [x] All the changed text is in ASD-STE100 Simplified Technical English. #skills

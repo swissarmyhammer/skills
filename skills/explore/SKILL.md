@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Learn how code that is new to you works before you plan or change it — its structure, its behavior, its data flow, and the blast radius of a change. Use when the user says "explore", "investigate", "how does X work", "why does X happen", "where is X handled", "what calls X", "what would it take to change X", or when you must know the code before you change it. Uses the `tools.code_context` verbs — symbol search, call graph and blast radius — and not a full read of each file.
+description: Learn how code that is new to you works before you plan or change it — its structure, its behavior, its data flow, and the blast radius of a change. Use when the user says "explore", "investigate", "how does X work", "why does X happen", "where is X handled", "what calls X", "what would it take to change X", "where is the bug", or when you must know the code before you change it or fix a bug in it. Uses the `tools.code_context` verbs — symbol search, call graph and blast radius — and not a full read of each file.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: explorer

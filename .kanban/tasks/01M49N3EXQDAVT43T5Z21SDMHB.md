@@ -20,7 +20,41 @@ comments:
     - evidence: 2 files — skills/explore/SKILL.md, skills/code-context/SKILL.md
     - next: /review. The SWE-bench acceptance item waits for the external bench run in the FoundationModelsACPAgent session.
   timestamp: 2026-10-06T22:28:00.996073+00:00
-position_column: doing
+- actor: wballard
+  id: 01m49nan10vbmax44105yr90t0
+  text: |-
+    ### review — clean
+    - evidence: `review sha HEAD~1..HEAD` gave zero findings (findings 0, confirmed 0, refuted 0). The engine reviewed 0 files. The 19 `.kanban/` files are excluded by `.reviewignore`. For `skills/explore/SKILL.md` and `skills/code-context/SKILL.md`, no validator matches the file (no validator has a `*.md` glob). Thus, no validator examined the skill text.
+    - next: The task is in done. The last acceptance criterion (a new SWE-bench run) stays open. Another session does it.
+  timestamp: 2026-10-06T22:28:41.632302+00:00
+- actor: wballard
+  id: 01m49nax0g7w59fqjtewv9szbm
+  text: |-
+    ### finish iteration 1 — clean
+    - implement: changed — 2 files (skills/explore/SKILL.md, skills/code-context/SKILL.md)
+    - test: no test suite in this repo — nothing to run
+    - commit: 8d07d09
+    - review: clean — zero findings. No validator matches *.md, thus the engine did not examine the skill text.
+    - open: the SWE-bench run criterion waits for the FoundationModelsACPAgent session.
+  timestamp: 2026-10-06T22:28:49.808337+00:00
+- actor: wballard
+  id: 01m49ndsz0nnggz3gnqjexdd81
+  text: |-
+    ### Baseline counts before commit 8d07d09 (from the FoundationModelsACPAgent session)
+
+    16 instances in each run, with the same instance ids.
+
+    | Run | code_context | files.read | files.grep |
+    |---|---|---|---|
+    | 2026-10-05 (code-context) | 47 (grepCode 24, getSymbol 16, detectProjects 2, searchSymbol 2, searchCode 1, searchWorkspaceSymbol 1, listFiles 1) | 156 | 103 |
+    | 2026-10-06 (code-context-1006, newer Router and Multitool) | 8 (grepCode 2, searchSymbol 2, detectProjects 1, getStatus 1, listSymbol 1, searchWorkspaceSymbol 1) | 274 | 100 |
+
+    - The use of code_context changes much between two runs (47, then 8). Thus the earlier "approximately 49 to 260" is one run only.
+    - Target for the next run: clearly more code_context calls than in both runs, and fewer files.read calls.
+    - The model called verbs that do not exist: `code_context.listFiles` (1 call, 2026-10-05) and `files.readFile` (1 call, 2026-10-06).
+    - The next run waits for a push of the skills to origin code-context. The push must have the approval of the user.
+  timestamp: 2026-10-06T22:30:24.992023+00:00
+position_column: done
 position_ordinal: '80'
 title: Make the explore and code-context skills steer a small model to the code_context verbs
 ---
