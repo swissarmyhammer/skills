@@ -25,6 +25,40 @@ servers. Use it as a normal part of the task.
 Do not read a file from top to bottom. Do not guess where a symbol is, or what
 calls it. The verbs answer those questions exactly, and at a low cost.
 
+## Use these verbs first
+
+**Rule:** Before you call `tools.files.read` or `tools.files.grep` on a code
+file, call a `tools.code_context` verb.
+
+| You want | Do not use | Use |
+|---|---|---|
+| The parts of a file | `files.read` of the full file | `listSymbol({ file })` |
+| The source of a function or a class | `files.read` with `offset` and `limit` | `getSymbol({ query: "Class.method" })` |
+| The definition of a name | `files.grep` for `def name` or `class Name` | `searchSymbol({ query })`, then `getSymbol({ query })` |
+| The callers of a function | `files.grep` for the name | `getCallgraph({ symbol, direction: "inbound" })` |
+| All uses of a name | `files.grep` for the name in a directory | `getReferences({ file, line, character })` or `grepCode({ pattern })` |
+| The code that holds a text | `files.grep` with `outputMode: "filesWithMatches"` | `grepCode({ pattern, filePattern })` |
+| The tests for a symbol | `files.grep` in `tests/` | `grepCode({ pattern: "<name>", filePattern: "*test*" })` |
+| The effect of a change | many `files.grep` calls | `getBlastradius({ file, symbol })` |
+
+Copy this snippet. It finds a symbol, gives its source and gives its callers
+in one call:
+
+```js
+const found = await tools.code_context.searchSymbol({ query: "<name>", maxResults: 5 });
+const source = await tools.code_context.getSymbol({ query: "<Class.method>", maxResults: 1 });
+const callers = await tools.code_context.getCallgraph({ symbol: "<Class.method>", direction: "inbound", maxDepth: 2 });
+return { found, source, callers };
+```
+
+Use `tools.files.read` and `tools.files.grep` only in these three cases:
+
+- The file is not code: TOML, YAML, JSON, Markdown or a template.
+- A `tools.code_context` verb gave you the file and the symbol, and you must
+  see the exact lines before you edit them.
+- A `tools.code_context` verb gave an empty result because the index does not
+  hold the file yet.
+
 ## How to call the verbs
 
 The code context is a group of verbs in code mode. Call them in the `runCode`
@@ -57,10 +91,7 @@ follow-up in one snippet.
   method, with its own lines, not as the class around it. A hit outside every
   method, for example on the `class` line, comes back as the class. Use
   `grepCode` to learn WHICH symbols hold a text, then `getSymbol` for the one
-  that you need.
-- **To find the exact lines of a text:** `tools.files.grep` answers with each
-  matching line and its line number. That is the better verb when you want
-  lines, not symbols.
+  that you need. The source of that symbol has the exact lines of the hit.
 - **Before you change a symbol:** `getCallgraph({ symbol, direction: "inbound" })`
   gives its callers. For a shared or public symbol, also
   `getBlastradius({ file, symbol })`. If the result is a surprise, you do not
@@ -167,13 +198,6 @@ minutes. `getStatus({})` gives the progress. Do not wait for it:
   usually means that the language server layer is not complete yet. Use
   `getInboundCalls` at the position of the symbol, which asks the server now.
   Look at `getLspStatus({})` only to see whether the server runs.
-
-## When to use the file verbs
-
-Use `tools.files.read` and `tools.files.grep` for files that are not code (TOML,
-YAML, Markdown), for string literals and configuration values, to find the
-exact lines where a text appears, and to see the exact text after a code
-context verb gave you the location.
 
 ## Example
 
