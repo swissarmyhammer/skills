@@ -64,8 +64,24 @@ comments:
     - evidence: 2 files — skills/code-context/SKILL.md (description: removed "before you change code", "what's affected if I change this", "list the symbols of a file"; kept the lookup trigger phrases), skills/explore/SKILL.md (description: added "where is the bug" and "fix a bug in it"). Retrieval-tier ranks measured with a scratch harness over FoundationModelsSkills (path dependency, read-only repo not changed): the edit/fix queries rank explore first; the lookup queries rank code-context first. Selection tier (flash model) not measured. No new skill added. No commit.
     - next: /review
   timestamp: 2026-10-06T22:35:11.878327+00:00
-position_column: doing
-position_ordinal: '80'
+- actor: wballard
+  id: 01m49nqkzvpt5tb7d8rcp6hend
+  text: |-
+    ### review — clean
+    - evidence: review sha HEAD~1..HEAD (commit 236b0fb). Counts: 0 findings, 0 confirmed, 0 refuted. The engine reviewed 0 files. The .reviewignore rule excluded 4 .kanban/ files. No validator matched skills/code-context/SKILL.md and skills/explore/SKILL.md, thus the engine did not examine these two files.
+    - next: The task is in done. To examine the SKILL.md text, a person must add a validator that matches SKILL.md files.
+  timestamp: 2026-10-06T22:35:46.555540+00:00
+- actor: wballard
+  id: 01m49nqvdy0w9c1t6cbjxnn1y9
+  text: |-
+    ### finish iteration 1 — clean
+    - implement: changed — 2 files (skills/code-context/SKILL.md, skills/explore/SKILL.md). First-stage ranks measured: edit/fix queries give explore first; lookup queries give code-context first. Second stage (model selection) not measured.
+    - test: no test suite in this repo — nothing to run
+    - commit: 236b0fb
+    - review: clean — zero findings. No validator matches *.md, thus the engine did not examine the skill text.
+  timestamp: 2026-10-06T22:35:54.174312+00:00
+position_column: done
+position_ordinal: '8180'
 title: A skill search for "edit" or "fix" must not return the code-context skill first
 ---
 ## Problem
