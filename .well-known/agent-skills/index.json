@@ -35,6 +35,13 @@
       "name" : "map",
       "type" : "skill-md",
       "url" : "/skills/map/SKILL.md"
+    },
+    {
+      "description" : "Use when implementing any feature or bugfix, before writing implementation code.",
+      "digest" : "sha256:ce642d1762979fe74f9400e2dc2e364bce3f6e79721ae0a7023fd7f32ba6c8c6",
+      "name" : "tdd",
+      "type" : "skill-md",
+      "url" : "/skills/tdd/SKILL.md"
     }
   ]
 }

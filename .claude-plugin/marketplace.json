@@ -17,7 +17,8 @@
         "./skills/detected-projects",
         "./skills/explore",
         "./skills/lsp",
-        "./skills/map"
+        "./skills/map",
+        "./skills/tdd"
       ],
       "source" : "./",
       "strict" : false
