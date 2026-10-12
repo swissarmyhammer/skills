@@ -3,4 +3,5 @@
 .code-context/
 .sah/
 .shell/
+.kanban/*.log
 .reviewignore
