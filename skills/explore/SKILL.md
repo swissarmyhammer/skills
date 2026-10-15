@@ -28,7 +28,7 @@ $ARGUMENTS
 | All uses of a name | `files.grep` for the name in a directory | `getReferences({ file, line, character })` or `grepCode({ pattern })` |
 | The code that holds a text | `files.grep` with `outputMode: "filesWithMatches"` | `grepCode({ pattern, filePattern })` |
 | The tests for a symbol | `files.grep` in `tests/` | `grepCode({ pattern: "<name>", filePattern: "*test*" })` |
-| The effect of a change | many `files.grep` calls | `getBlastradius({ file, symbol })` |
+| The effect of a change | many `files.grep` calls | `getBlastradius({ file, symbol })`, or `getBlastradius({ scope: "working" })` for the changes that you made |
 
 Copy this snippet. It finds a symbol, gives its source and gives its callers in one call:
 
@@ -126,6 +126,12 @@ await tools.code_context.getReferences({ file: "<file>", line: <line>, character
 
 ```js
 await tools.code_context.getBlastradius({ file: "<target>", maxHops: 3 });
+```
+
+If the change is already in the working tree, measure the radius of all the changed files in one call:
+
+```js
+await tools.code_context.getBlastradius({ scope: "working", maxHops: 3 });
 ```
 
 Also use `getReferences`. The blast radius follows call edges. References also find the uses of a type, the access to a field and the implementations of an interface.
