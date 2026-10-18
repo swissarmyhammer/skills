@@ -60,17 +60,6 @@ Do not guess the test command. Find it before you run a test.
    return await tools.shell.execute({ command: "<the test command that you found>", workingDirectory: "<the directory of the project>" });
    ```
 
-## Run the Tests One Time
-
-**A test run is a measurement. Do it one time. Then do work on the result.**
-
-- Run the suite one time. Read the output. The output tells you which tests failed.
-- Do not run the same tests again if the code did not change. The result is the same. This wastes time and tokens.
-- Do not run tests in a loop. Do not use `for i in {1..N}`, `--count=N`, or `--repeat`.
-- Do not run the suite again to make sure of a pass or a failure. One run is sufficient.
-- When tests fail, do work only on the failures. After each correction, run only the tests that failed. At the end, run the full suite one more time.
-- Keep the output of the run. To see the output again, read the output that you kept. Do not run the tests again.
-
 ## Unit Tests and Integration Tests
 
 - **Unit tests are fast, and they give coverage.** A unit test examines the logic of the code. It does not need an external system. Each test run includes all of the unit test targets.
@@ -80,6 +69,9 @@ Do not guess the test command. Find it before you run a test.
 ## Rules
 
 - All of the tests must pass. A partial pass is a failure.
+- Do not run the same tests again if the code did not change. The result is the same. This wastes time and tokens.
+- When tests fail, do work only on the failures. After each correction, run only the tests that failed. At the end, run the full suite one more time.
+- Do not run tests in a loop to solve 'flaky tests'. Do not use `for i in {1..N}`, `--count=N`, or `--repeat`.
 - Correct all of the warnings. A warning is a bug that did not cause a failure yet.
 - A skipped test is broken or it is dead. Correct a broken test. Delete a dead test. A skipped test is not acceptable.
 - Do not hide a warning. Do not use `#[allow(...)]`, `@suppress`, or `// eslint-disable`.
