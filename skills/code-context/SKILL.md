@@ -37,7 +37,7 @@ file, call a `tools.code_context` verb.
 | All uses of a name | `files.grep` for the name in a directory | `getReferences({ file, line, character })` or `grepCode({ pattern })` |
 | The code that holds a text | `files.grep` with `outputMode: "filesWithMatches"` | `grepCode({ pattern, filePattern })` |
 | The tests for a symbol | `files.grep` in `tests/` | `grepCode({ pattern: "<name>", filePattern: "*test*" })` |
-| The effect of a change | many `files.grep` calls | `getBlastradius({ file, symbol })` |
+| The effect of a change | many `files.grep` calls | `getBlastradius({ file, symbol })`, or `getBlastradius({ scope: "working" })` for the changes that you made |
 
 Copy this snippet. It finds a symbol, gives its source and gives its callers
 in one call:
@@ -95,6 +95,11 @@ follow-up in one snippet.
   `getBlastradius({ file, symbol })`. If the result is a surprise, you do not
   know the change well enough yet.
 - **After you change a signature:** look at each inbound caller again.
+- **Before a commit or a review:** `getBlastradius({ scope: "working" })` gives
+  the callers that the changes in the working tree can affect. For a commit or
+  a range, use `getBlastradius({ scope: "sha", sha: "HEAD~1" })`. A commit name
+  such as `HEAD~1` selects the files that change from that commit to `HEAD`. A
+  range such as `main..HEAD` is also correct.
 - **When a test fails:** `getCallgraph({ symbol })` on the symbol that fails
   shows what the failure reaches.
 - **To see errors:** `getDiagnostics({ scope: "working" })` gives the errors and
@@ -117,6 +122,8 @@ await tools.code_context.findDuplicates({ file: "src/parser.py" });
 // Impact
 await tools.code_context.getCallgraph({ symbol: "Model.save", direction: "inbound", maxDepth: 2 });
 await tools.code_context.getBlastradius({ file: "django/db/models/base.py", symbol: "save", maxHops: 3 });
+await tools.code_context.getBlastradius({ scope: "working", maxHops: 3 });
+await tools.code_context.getBlastradius({ scope: "sha", sha: "HEAD~1", maxHops: 3 });
 
 // Live language server, at a position (0-based line and character)
 await tools.code_context.getDefinition({ file: "a.py", line: 41, character: 8, includeSource: true });
