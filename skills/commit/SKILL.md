@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Git commit workflow. Use this skill whenever the user says "commit", "save changes", "check in", or otherwise wants to commit code. Always use this skill instead of running git commands directly.
+description: Use when the user says "commit", "save changes", or "check in", and after each step that works. Use this skill, not raw git commands.
 license: MIT OR Apache-2.0
 compatibility: Requires `git` on the system PATH, a writable Git working tree, and the `tools.shell` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: committer

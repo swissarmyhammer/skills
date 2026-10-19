@@ -1,6 +1,6 @@
 ---
 name: coder
-description: Coding agent. It makes one code change completely: it finds the code, writes a failing test first, changes the code until the test passes, and gives a report. Use this agent to give it a bug fix or a feature, and to keep the long reads and test output out of the context of the caller.
+description: Use for a bug fix or a feature with its test. It writes a failing test first, makes it pass, and keeps the long reads out of your context.
 skills:
   - explore
   - code-context

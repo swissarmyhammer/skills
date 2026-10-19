@@ -1,12 +1,6 @@
 ---
 name: code-context
-description: >-
-  Code context verbs for symbol lookup: find a symbol, go to its definition,
-  find its references and its callers, get its call graph, and get its blast
-  radius. Use when the user says "find symbol", "symbol lookup", "find
-  references", "go to definition", "who calls this", "find callers", "what
-  calls this function", "callgraph", or "blast radius". The symbol index is
-  faster and more exact than a raw text search.
+description: Use when the user says "find symbol", "go to definition", "find references", "who calls this", "callgraph", or "blast radius". The symbol index is faster and more exact than a text search.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 metadata:

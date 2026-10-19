@@ -1,6 +1,6 @@
 ---
 name: test
-description: Run tests and analyze results. Use when the user wants to run the test suite or test specific functionality.
+description: Use when the user wants to run the test suite or one test, or after a code change. Runs the tests and analyzes the results.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.shell` and `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: tester

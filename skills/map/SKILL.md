@@ -1,6 +1,6 @@
 ---
 name: map
-description: Generate a visual architecture overview of the codebase with Mermaid diagrams. Produces ARCHITECTURE.md at repo root. Use when the user says "map", "architecture", "overview", or wants to understand the codebase structure.
+description: Use when the user says "map", "architecture", or "overview", or wants the structure of the codebase. Writes ARCHITECTURE.md with Mermaid diagrams.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 metadata:

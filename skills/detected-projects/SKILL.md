@@ -1,6 +1,6 @@
 ---
 name: detected-projects
-description: Discover project types, build commands, test commands, and language-specific guidelines for the current workspace. Use when the user says "what kind of project", "detect project", "build command", "test command", "project type", asks what language or framework the code uses, or wants to know how to build, test, or format the project. Also use early in any session before making changes.
+description: Use early in a session, before you change code, or when the user asks what kind of project this is or how to build, test, or format it. Gives the project types, commands, and guidelines.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 metadata:

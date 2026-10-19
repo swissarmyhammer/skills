@@ -1,6 +1,6 @@
 ---
 name: kanban
-description: Do the next task of the kanban board. Use when the user says "kanban", "/kanban", "next task", "what's the next task", or "pick up work". Gets the next ready task from the board, moves it to doing, does the work, and moves it to review.
+description: Use when the user says "kanban", "next task", or "pick up work". Takes the next ready task on the board through doing to review.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.kanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
 metadata:

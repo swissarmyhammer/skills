@@ -1,6 +1,6 @@
 ---
 name: committer
-description: Git commit agent. It makes clean commits, with one purpose for each commit. Use this agent to commit changes.
+description: Use after each step that works, to commit it. Commit often, so that each commit is an undo point.
 skills:
   - commit
 ---

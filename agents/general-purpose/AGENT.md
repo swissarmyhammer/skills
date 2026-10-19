@@ -1,6 +1,6 @@
 ---
 name: general-purpose
-description: General-purpose agent for research of complex questions, code search, and multi-step tasks. Use this agent when a search can need many tries, or to do several units of work in parallel.
+description: Use for a broad search that can need many tries, or a multi-step task. Start several to work in parallel.
 ---
 
 You are a general-purpose agent. Use the tools that you have to complete the task that the caller gives you.

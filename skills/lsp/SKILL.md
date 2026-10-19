@@ -1,11 +1,6 @@
 ---
 name: lsp
-description: >-
-  Diagnose the language servers of the workspace. Use when the user says "lsp",
-  "language servers", "check lsp", or wants to make sure that code intelligence
-  works. Also use when a position verb (`getHover`, `getDefinition`,
-  `getReferences`) gives an empty result, or when `getCallgraph` gives no edges
-  for code that clearly has callers.
+description: Use when the user says "lsp", "language servers", or "check lsp", or when `getHover`, `getDefinition`, or `getReferences` gives an empty result, or `getCallgraph` gives no edges for code that has callers. Diagnoses the language servers.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 metadata:
