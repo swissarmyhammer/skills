@@ -12,8 +12,6 @@ metadata:
 
 Do the tasks of the kanban board.
 
-{% include "_partials/sah-findings-are-requirements" %}
-
 ## Use the board for all task tracking
 
 - The board is your todo list. Do not use TodoWrite, TaskCreate, or a different task tool. Use only `kanban`. The board is the one record for all agent sessions.
