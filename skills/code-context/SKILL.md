@@ -9,15 +9,8 @@ compatibility: Requires the `tools.code_context` verbs of a code-mode host such 
 
 `tools.code_context` is structural code intelligence: an index of symbols, a
 call graph, and blast radius analysis, from tree-sitter and live language
-servers. Use it as a normal part of the task.
+servers. Use it instead of reading full files of code.
 
-Do not read a file from top to bottom. Do not guess where a symbol is, or what
-calls it. The verbs answer those questions exactly, and at a low cost.
-
-## Use these verbs first
-
-**Rule:** Before you call `tools.files.read` or `tools.files.grep` on a code
-file, call a `tools.code_context` verb.
 
 | You want | Do not use | Use |
 |---|---|---|
@@ -30,8 +23,7 @@ file, call a `tools.code_context` verb.
 | The tests for a symbol | `files.grep` in `tests/` | `grepCode({ pattern: "<name>", filePattern: "*test*" })` |
 | The effect of a change | many `files.grep` calls | `getBlastradius({ file, symbol })`, or `getBlastradius({ scope: "working" })` for the changes that you made |
 
-Copy this snippet. It finds a symbol, gives its source and gives its callers
-in one call:
+This example finds a symbol, gives its source and gives its callers in one call:
 
 ```js
 const found = await tools.code_context.searchSymbol({ query: "<name>", maxResults: 5 });
@@ -39,14 +31,6 @@ const source = await tools.code_context.getSymbol({ query: "<Class.method>", max
 const callers = await tools.code_context.getCallgraph({ symbol: "<Class.method>", direction: "inbound", maxDepth: 2 });
 return { found, source, callers };
 ```
-
-Use `tools.files.read` and `tools.files.grep` only in these three cases:
-
-- The file is not code: TOML, YAML, JSON, Markdown or a template.
-- A `tools.code_context` verb gave you the file and the symbol, and you must
-  see the exact lines before you edit them.
-- A `tools.code_context` verb gave an empty result because the index does not
-  hold the file yet.
 
 ## How to call the verbs
 
@@ -62,39 +46,6 @@ return r;
 A file path is relative to the workspace root. A `line` and a `character` are
 0-based. One `runCode` call can make many verb calls, thus do a lookup and its
 follow-up in one snippet.
-
-## When to use which verb
-
-- **Before you read a file:** `listSymbol({ file })` gives the table of
-  contents. Then `getSymbol({ query })` gives only the source text that you
-  need. A full file read is the fallback.
-- **To find a definition by name:** `searchSymbol({ query, kind })` is a fuzzy
-  match, and `getSymbol({ query })` gives the source of the match. Each result
-  is that one symbol: a method comes back as the method, with its own lines,
-  not as the class around it. `kind` is `"function"`, `"method"`, `"type"` or
-  `"other"`. Do not search for `def name` or `class Name` with a pattern: that
-  is a name, and these two verbs find names exactly.
-- **To find which code holds a pattern:** `grepCode({ pattern, filePattern })`
-  runs a regular expression on the indexed chunks. Each hit comes back as the
-  INNERMOST symbol that holds the match: a hit in a method comes back as that
-  method, with its own lines, not as the class around it. A hit outside every
-  method, for example on the `class` line, comes back as the class. Use
-  `grepCode` to learn WHICH symbols hold a text, then `getSymbol` for the one
-  that you need. The source of that symbol has the exact lines of the hit.
-- **Before you change a symbol:** `getCallgraph({ symbol, direction: "inbound" })`
-  gives its callers. For a shared or public symbol, also
-  `getBlastradius({ file, symbol })`. If the result is a surprise, you do not
-  know the change well enough yet.
-- **After you change a signature:** look at each inbound caller again.
-- **Before a commit or a review:** `getBlastradius({ scope: "working" })` gives
-  the callers that the changes in the working tree can affect. For a commit or
-  a range, use `getBlastradius({ scope: "sha", sha: "HEAD~1" })`. A commit name
-  such as `HEAD~1` selects the files that change from that commit to `HEAD`. A
-  range such as `main..HEAD` is also correct.
-- **When a test fails:** `getCallgraph({ symbol })` on the symbol that fails
-  shows what the failure reaches.
-- **To see errors:** `getDiagnostics({ scope: "working" })` gives the errors and
-  the warnings of the files that you changed.
 
 ## The verbs
 
@@ -138,46 +89,6 @@ await tools.code_context.rebuildIndex({ layer: "treesitter" });
 `searchCode` ranks by the meaning of the text. A host can turn that rank off.
 Then `searchCode` answers with an error that says the embedding layer is off:
 use `grepCode` and `searchSymbol`.
-
-## A language server does not have every verb
-
-The verbs have two sources, and they do not fail in the same way.
-
-- **The index verbs** read the symbol index, which comes from tree-sitter:
-  `getSymbol`, `searchSymbol`, `listSymbol`, `grepCode`, `queryAst` and
-  `findDuplicates`. They work for each language that the host parses.
-- **The position verbs** ask the language server of that one language. A server
-  answers only the methods that it has. For a method that it does not have, it
-  answers "method not found", and the verb then gives you nothing. Your file,
-  your line and your character were correct. Do not try that verb again for the
-  same language in the same session.
-
-The host reads the capabilities of each server, thus it never asks for a
-method that the server does not have. Where a method is absent, the host uses
-another way when it has one.
-
-| Language, server | The server does not have | What the host does |
-|---|---|---|
-| Python, `pylsp` | call hierarchy | The callers come from `getReferences` instead. `getCallgraph`, `getBlastradius` and `getInboundCalls` all answer. |
-| Python, `pylsp` | `searchWorkspaceSymbol`, `getImplementations` | The verb answers with an empty result, and a `notSupportedReason` that says so. |
-
-`pylsp` does have `getDefinition`, `getTypeDefinition`, `getReferences`,
-`getHover`, `listSymbol`, `getRenameEdits` and `getCodeActions`.
-
-**Thus, on a Python repository:**
-
-- The call verbs work. `getCallgraph({ symbol, direction: "inbound" })` and
-  `getBlastradius` read the index; `getInboundCalls` asks the server at the
-  position, thus it is the verb for the freshest answer. Measured on a Python
-  workspace on 2026-09-22: `getInboundCalls` gave both callers with
-  `sourceLayer: "liveLSP"`, and `getCallgraph` gave the same two callers with
-  `source: "lsp"` edges.
-- For a name across the whole workspace, use `searchSymbol`, which reads the
-  index and matches loosely. `searchWorkspaceSymbol` answers empty here, with
-  a `notSupportedReason`.
-- **Read `notSupportedReason` before you believe an empty result.** With the
-  field, the server has no such method, thus ask another verb. Without it,
-  the answer is "nothing to find", thus the code holds no match.
 
 ## The index fills in the background
 

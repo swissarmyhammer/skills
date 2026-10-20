@@ -10,7 +10,11 @@ agent: explorer
 
 Learn the code. Then explain how it works, and what a change to it affects.
 
+Check here for caller supplied arguments -- in this case explore what was asked.
+
+```
 $ARGUMENTS
+```
 
 ## Use these verbs first
 
