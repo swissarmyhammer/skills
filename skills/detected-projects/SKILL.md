@@ -3,9 +3,6 @@ name: detected-projects
 description: Use early in a session, before you change code, or when the user asks what kind of project this is or how to build, test, or format it. Gives the project types, commands, and guidelines.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
-metadata:
-  author: swissarmyhammer
-  version: "1.0.0"
 ---
 
 # Project Detection

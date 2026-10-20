@@ -2,9 +2,6 @@
 name: tdd
 description: Use when implementing any feature or bugfix, before writing implementation code.
 license: MIT OR Apache-2.0
-metadata:
-  author: swissarmyhammer
-  version: "1.0.0"
 ---
 
 # Test-Driven Development (TDD)

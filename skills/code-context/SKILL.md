@@ -3,9 +3,6 @@ name: code-context
 description: Use when the user says "find symbol", "go to definition", "find references", "who calls this", "callgraph", or "blast radius". The symbol index is faster and more exact than a text search.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
-metadata:
-  author: swissarmyhammer
-  version: "1.0.0"
 ---
 
 # Code Context

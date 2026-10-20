@@ -3,9 +3,6 @@ name: kanban
 description: Use when the user says "kanban", "next task", or "pick up work". Takes the next ready task on the board through doing to review.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.kanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
-metadata:
-  author: swissarmyhammer
-  version: "1.0.0"
 ---
 
 # Kanban

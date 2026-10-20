@@ -4,9 +4,6 @@ description: Use before you plan or change code that is new to you, or when the 
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: explorer
-metadata:
-  author: swissarmyhammer
-  version: "1.0.0"
 ---
 
 # Explore

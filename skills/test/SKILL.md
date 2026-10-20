@@ -4,9 +4,6 @@ description: Use when the user wants to run the test suite or one test, or after
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.shell` and `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: tester
-metadata:
-  author: swissarmyhammer
-  version: "1.0.0"
 ---
 
 # Test
