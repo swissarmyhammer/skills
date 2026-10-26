@@ -10,15 +10,7 @@ license: MIT OR Apache-2.0
 
 Write the test first. Watch it fail. Write minimal code to pass.
 
-**Core principle:** 
-
-- If you didn't watch the test fail, you don't know if it tests the right thing.
-- Run each test one time per code change.
-- Do not run a test again when the code did not change — the result is the same. 
-- Never run tests in a loop. 
-- Never run the suite again to "confirm" a result.
-- Keep test-only code in test utilities, out of production classes
-- Understand a dependency's side effects before mocking it
+**Core principle:** If you didn't watch the test fail, you don't know if it tests the right thing.
 
 ## When to Use
 
@@ -28,17 +20,19 @@ Write the test first. Watch it fail. Write minimal code to pass.
 - Refactoring
 - Behavior changes
 
+**Never:**
+- Documentation, do not make automated tests that assert documentation
+- Configuration files
+- Generated code
+
 **Exceptions (ask your human partner):**
 - Throwaway prototypes
-- Configuration files
 
 Thinking "skip TDD just this once"? Stop. That's rationalization.
 
-## The Iron Law
+## Running Tests
 
-```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
+Run tests in an appropriate sub agent to avoid clogging up your context with test output.
 
 ## Red-Green-Refactor
 
@@ -87,10 +81,6 @@ Vague name, tests mock not code
 ### Verify RED - Watch It Fail
 
 **MANDATORY. Never skip.** Run only the new test, one time.
-
-```bash
-npm test path/to/test.test.ts
-```
 
 Confirm from that one output:
 - Test fails (not errors)
@@ -141,10 +131,6 @@ Over-engineered
 
 **MANDATORY.** Run only the new test, one time.
 
-```bash
-npm test path/to/test.test.ts
-```
-
 Confirm from that one output:
 - Test passes
 - Output pristine (no errors, warnings)
@@ -180,11 +166,7 @@ Next failing test for next feature.
   CI runs it always. It stays out of the red-green loop.
 - **Select tests only with the platform's native methods** — targets,
   packages, paths, registered markers. Never gate a test with an environment
-  variable. The separation is structural: the integration test lives in a
-  target the default test command does not see — a nested
-  `IntegrationTests/` Swift package run with
-  `swift test --package-path IntegrationTests`, or a Rust crate the workspace
-  `default-members` list excludes, run with `cargo test -p <crate>`.
+  variable.
 
 ## Good Tests
 
@@ -229,42 +211,6 @@ Next failing test for next feature.
 
 **All of these mean: Delete code. Start over with TDD.**
 
-## Example: Bug Fix
-
-**Bug:** Empty email accepted
-
-**RED**
-```typescript
-test('rejects empty email', async () => {
-  const result = await submitForm({ email: '' });
-  expect(result.error).toBe('Email required');
-});
-```
-
-**Verify RED**
-```bash
-$ npm test
-FAIL: expected 'Email required', got undefined
-```
-
-**GREEN**
-```typescript
-function submitForm(data: FormData) {
-  if (!data.email?.trim()) {
-    return { error: 'Email required' };
-  }
-  // ...
-}
-```
-
-**Verify GREEN**
-```bash
-$ npm test
-PASS
-```
-
-**REFACTOR**
-Extract validation for multiple fields if needed.
 
 ## Verification Checklist
 

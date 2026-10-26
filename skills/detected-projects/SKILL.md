@@ -18,19 +18,34 @@ one project for each language, from the marker file of that language, for
 example `Package.swift`, `Cargo.toml`, `pyproject.toml`, `setup.py`,
 `package.json` or `go.mod`.
 
-Use the result to select the commands of the project:
+**Read the test rules of each language.** Read the reference file for the `language` of each project. It gives the test commands, the lint commands, how to select integration tests, and how to find skipped tests, a test that does not stop, and tests that share state.
 
-- the language and the root directory of each project;
-- the test command of that language, for example `python -m pytest`,
-  `cargo test`, `swift test`, `go test ./...` or `npm test`;
-- the build and format commands of that language.
+   | `language` | Reference |
+   |---|---|
+   | `rust` | [rust.md](references/rust.md) |
+   | `swift` | [swift.md](references/swift.md) |
+   | `python` | [python.md](references/python.md) |
+   | `javascript`, `typescript`, `tsx` | [typescript.md](references/typescript.md) |
+   | `go` | [go.md](references/go.md) |
+   | `java` | [java.md](references/java.md) |
+   | `csharp` | [csharp.md](references/csharp.md) |
+   | `c`, `cpp` | [c-cpp.md](references/c-cpp.md) |
+   | `ruby` | [ruby.md](references/ruby.md) |
+   | `php` | [php.md](references/php.md) |
+   | `elixir` | [elixir.md](references/elixir.md) |
 
-Before you run a command, look for the file of the repository that gives the
-real command: a `README`, a `Makefile`, a `tox.ini`, a `pyproject.toml`, or a
-test runner script such as `tests/runtests.py`. The command of the repository
-wins over the default command of the language.
+   If there is no reference file for the language, use the files of the repository
 
-Run the commands with `tools.shell.execute`.
+**Look for the command of the repository.** For each project, look in its directory for a file that gives the real command:
+   - a `Makefile` or a `justfile` with a `test` target
+   - the `scripts.test` entry of `package.json`
+   - `pyproject.toml`, `tox.ini`, or `noxfile.py`
+   - `.config/nextest.toml`
+   - a test runner script, for example `tests/runtests.py` or `scripts/test.sh`
+   - the CI workflow, for example `.github/workflows/*.yml`
+   - the `README` or the `CONTRIBUTING` file
+
+   The command of the repository is more important than the default command in the reference file. If the repository does not give a command, use the command of the reference file.
 
 ## Example
 

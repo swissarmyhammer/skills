@@ -14,7 +14,7 @@ agent: tester
 
 Do not guess the test command. Find it before you run a test.
 
-1. **Find the projects.** Call the verb in the `runCode` tool:
+**Find the projects.** Call the verb in the `runCode` tool:
 
    ```js
    return await tools.code_context.detectProjects({});
@@ -22,54 +22,18 @@ Do not guess the test command. Find it before you run a test.
 
    The result gives the language and the directory of each project. It does not give a command. A workspace can have more than one project, for example a Rust crate and a TypeScript web app. Each project has its own test command, and you must run all of them.
 
-2. **Read the test rules of each language.** Read the reference file for the `language` of each project. It gives the test commands, the lint commands, how to select integration tests, and how to find skipped tests, a test that does not stop, and tests that share state.
-
-   | `language` | Reference |
-   |---|---|
-   | `rust` | [rust.md](references/rust.md) |
-   | `swift` | [swift.md](references/swift.md) |
-   | `python` | [python.md](references/python.md) |
-   | `javascript`, `typescript`, `tsx` | [typescript.md](references/typescript.md) |
-   | `go` | [go.md](references/go.md) |
-   | `java` | [java.md](references/java.md) |
-   | `csharp` | [csharp.md](references/csharp.md) |
-   | `c`, `cpp` | [c-cpp.md](references/c-cpp.md) |
-   | `ruby` | [ruby.md](references/ruby.md) |
-   | `php` | [php.md](references/php.md) |
-   | `elixir` | [elixir.md](references/elixir.md) |
-
-   If there is no reference file for the language, use the files of the repository in step 3 to find the commands.
-
-3. **Look for the command of the repository.** For each project, look in its directory for a file that gives the real command:
-   - a `Makefile` or a `justfile` with a `test` target
-   - the `scripts.test` entry of `package.json`
-   - `pyproject.toml`, `tox.ini`, or `noxfile.py`
-   - `.config/nextest.toml`
-   - a test runner script, for example `tests/runtests.py` or `scripts/test.sh`
-   - the CI workflow, for example `.github/workflows/*.yml`
-   - the `README` or the `CONTRIBUTING` file
-
-   The command of the repository is more important than the default command in the reference file. If the repository does not give a command, use the command of the reference file.
-
-4. **Run the command in the directory of the project** with `tools.shell.execute`. Use the command that you found, not the example below:
-
-   ```js
-   return await tools.shell.execute({ command: "<the test command that you found>", workingDirectory: "<the directory of the project>" });
-   ```
-
 ## Unit Tests and Integration Tests
 
 - **Unit tests are fast, and they give coverage.** A unit test examines the logic of the code. It does not need an external system. Each test run includes all of the unit test targets.
 - **Integration tests can be slower.** They use real scenarios, for example a real model, a real database, or a real server. CI runs them. Run them yourself only when it is necessary, usually when your change is in that integration. Then select that integration target directly with the test tool of the platform. The reference file of the language tells how. If your change is not in the integration, let CI run these tests.
-- **Select tests only with the structure of the platform. Do not use an environment variable.** An integration test is in its own target or package, and the default test command does not see it. Select tests only with the filters of the platform: targets, packages, paths, and registered markers. Do not set or read an environment variable to select, skip, or change tests.
 
 ## Rules
 
 - All of the tests must pass. A partial pass is a failure.
+- Run the type check and linter for each project, treat errors as failed tests.
 - Do not run the same tests again if the code did not change. The result is the same. This wastes time and tokens.
 - When tests fail, do work only on the failures. After each correction, run only the tests that failed. At the end, run the full suite one more time.
 - Do not run tests in a loop to solve 'flaky tests'. Do not use `for i in {1..N}`, `--count=N`, or `--repeat`.
-- Correct all of the warnings. A warning is a bug that did not cause a failure yet.
 - A skipped test is broken or it is dead. Correct a broken test. Delete a dead test. A skipped test is not acceptable.
 - Do not hide a warning. Do not use `#[allow(...)]`, `@suppress`, or `// eslint-disable`.
 - Do not skip a test to stop a failure. Do not use `#[ignore]` or `skip`.
@@ -104,6 +68,8 @@ green: cargo nextest run — 1284 passed, 0 failed, 0 skipped; cargo clippy --al
 
 Report `green` only after a full run passes. If you ran only one test, or if the run stopped before the end, the result is not `green`. Say what you ran.
 
+Report `red` or `stuck` along with a list of specific failed tests.
+
 ## Troubleshooting
 
 ### There are no tests
@@ -112,7 +78,7 @@ Write one test to start.
 
 ### One test does not stop, and the suite does not finish
 
-The test waits for something that CI cannot supply, for example a network, a child process, a file watcher, or a deadlock. Run the tests with a hard time limit for each test, and find the test that does not stop. The reference file of the language tells how to set the limit. If the runner has no limit, run one suspect test with the shell command `timeout`, for example `timeout 60 <command for one test>`.
+Run the tests with a hard time limit for each test, and find the test that does not stop. The reference file of the language tells how to set the limit. If the runner has no limit, run one suspect test with the shell command `timeout`, for example `timeout 60 <command for one test>`.
 
 Run that one test again with more log output, for example `--verbose`, to find what it waits for. Correct the cause.
 
@@ -133,4 +99,4 @@ Remove the cause. Sort the iteration, inject a clock, give a seed to the random 
 
 ### Failures that are not related to your change
 
-All failures are related. Your job is to correct all of the tests that fail.
+All failures are related, report them.
