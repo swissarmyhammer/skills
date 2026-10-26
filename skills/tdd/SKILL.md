@@ -24,8 +24,6 @@ Write the test first. Watch it fail. Write minimal code to pass.
 - Documentation, do not make automated tests that assert documentation
 - Configuration files
 - Generated code
-
-**Exceptions (ask your human partner):**
 - Throwaway prototypes
 
 Thinking "skip TDD just this once"? Stop. That's rationalization.
