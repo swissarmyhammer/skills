@@ -1,17 +1,17 @@
 ---
 name: kanban
-description: Use when the user says "kanban", "next task", or "pick up work". Takes the next ready task on the board through doing to review.
+description: Use to read or change the kanban board with the `tools.kanban` tool, for example to add, find, assign, move, or update a task. Tells how to use the tool.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.kanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
 ---
 
 # Kanban
 
-Do the tasks of the kanban board.
+How to use the `tools.kanban` tool.
 
-## Use the board for all task tracking
+## Tasks and subtasks
 
-- The board is your todo list. Do not use TodoWrite, TaskCreate, or a different task tool. Use only `kanban`. The board is the one record for all agent sessions.
+- The board is the one record of the tasks for all agent sessions. Do not use TodoWrite, TaskCreate, or a different task tool.
 - A subtask is one line of a GFM checklist (`- [ ]` or `- [x]`) in the `body` of the task. There is no subtask API. Put the checklist in the body when you add the task, or change the body with `updateTask`.
 
 ## Call the tool
@@ -66,9 +66,9 @@ return r.data;
 - An `addTask` with no `assignees` assigns your actor, when your actor was on the board before the call.
 - Each `id` in a response is a full URI, for example `kanban://github.com/owner/repo/task/<ULID>`. Each task also has a `shortId`. When you name a task in text, write `^` and the `shortId`, for example `^rc9rb4g`. Copy the `shortId` from the response. Do not make a short form of the ULID yourself.
 
-## Process
+## Work with a task
 
-### 1. Get the next task
+### Get the next ready task
 
 `nextTask` gives the first ready task in board order: the column order, then the place in the column. A ready task is open, and each of its dependencies is done. Add a filter to choose the work.
 
@@ -83,9 +83,9 @@ return { title: t.title, ready: t.ready };
 {"ready":true,"title":"Fix the login bug"}
 ```
 
-### 2. Take the task
+### Assign and move a task
 
-There is no claim operation. The agents themselves decide which agent does which task. Two agents can get the same task from `nextTask`, so take the task immediately: assign yourself, and move the task to `doing`. A comment with no `actor` has your actor as its `author`. Thus the first comment also gives you your actor id.
+There is no claim operation. Two agents can get the same task from `nextTask`. To take a task, assign your actor and move the task in one document. A comment with no `actor` has your actor as its `author`. Thus a comment also gives you your actor id.
 
 ```js
 const t = (await tools.kanban({ query: `{ board { nextTask(filter: "#bug") { id } } }` })).data.board.nextTask;
@@ -109,9 +109,9 @@ return { column: moved.column.name, mine: moved.assignees.some(a => a.id === me)
 {"column":"Doing","mine":true}
 ```
 
-### 3. Read the task
+### Read a task
 
-Read the body, the checklist, and the comments. The comments record the work of the agents before you. Do not repeat an approach that a comment says did not work.
+`task` gives the title, the body with its checklist, the column, and the comments.
 
 ```js
 const r = await tools.kanban({
@@ -124,9 +124,9 @@ return r.data.board.task;
 {"body":"- [ ] Find the cause\n- [ ] Add a test","column":{"name":"Doing"},"comments":[{"body":"Picked up."}],"title":"Fix the login bug"}
 ```
 
-### 4. Do each subtask, and check it off immediately
+### Check off a subtask
 
-After each subtask, change its `- [ ]` to `- [x]` in the body. Do not wait to check off many subtasks together. Keep all other text of the body. `body` is the full new text: the tool calculates the change.
+Change its `- [ ]` to `- [x]` in the body with `updateTask`. Keep all other text of the body. `body` is the full new text: the tool calculates the change.
 
 ```js
 const t = (await tools.kanban({ query: `{ board { task(id: "fix-the-login-bug") { id body } } }` })).data.board.task;
@@ -141,13 +141,13 @@ return r.data.updateTask.progress;
 {"completed":1,"total":2}
 ```
 
-### 5. Record the progress
+### Add a comment
 
-Add a comment with `addComment`, as in step 2. Record the milestones, the approaches that did not work and why, the facts that you did not expect, and the blockers. The next agent reads them.
+`addComment` adds a comment to a task, as in [Assign and move a task](#assign-and-move-a-task). A comment with no `actor` has your actor as its `author`.
 
-### 6. Move the task to review
+### Move a task to a column
 
-Move the task to `review` when each subtask is `- [x]`. Do not use `completeTask`: it moves the task to `done` and skips the review. Then stop, and tell the user that the task is ready for `/review`.
+`moveTask` moves a task to the column that you name. `completeTask` moves the task to the last column.
 
 ```js
 const r = await tools.kanban({ query: `mutation { moveTask(input: { id: "fix-the-login-bug", column: "review" }) { column { name } } }` });
@@ -410,11 +410,3 @@ return {
 ## Forgiving names
 
 The tool accepts a name that is close enough, for example `createTask`, `task_id`, `labels`, or `status`. It rewrites the name to the canonical name, and `extensions.rewrites` tells you the change. Use the canonical names of this skill: a name that is close to two names gives `AMBIGUOUS_NAME`. A removed parameter of the old Rust kanban (for example `project` or `due`) gives the warning `REMOVED_PARAMETER`, and the call ignores it.
-
-## Guidelines
-
-- Do each subtask. Do not skip a subtask, and do not check it off before you do the work.
-- When a task is blocked or not clear, record it in a comment.
-- Run the tests after each subtask.
-- Move the task to review only when each subtask is done and the tests pass.
-- When you find new work, add a new task. Do not keep it only in your memory.

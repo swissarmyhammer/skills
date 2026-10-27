@@ -1,6 +1,5 @@
 # Local state of the coding tools. Not part of the marketplace.
 .claude/settings.local.json
-.code-context/
 .sah/
 .shell/
 .kanban/*.log

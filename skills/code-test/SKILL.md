@@ -1,6 +1,6 @@
 ---
-name: test
-description: Use when the user wants to run the test suite or one test, or after a code change. Runs the tests and analyzes the results.
+name: code-test
+description: Use when the user wants to run tests, or after a code change. Takes a scope (named tests, unit, integration, or project), or finds the scope from the change. Runs the tests and analyzes the results.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.shell` and `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: tester
@@ -9,6 +9,30 @@ agent: tester
 # Test
 
 **Zero failures. Zero skipped tests. The build is clean, or it is broken.**
+
+## Scope
+
+The caller gives the scope of the run:
+
+```
+$ARGUMENTS
+```
+
+| Scope | What to run |
+|---|---|
+| Named tests: a test name, a suite, or a test file | Only those tests. |
+| `unit` | The unit test targets of each project that the change touches. |
+| `integration` | The integration targets of each project that the change touches. |
+| `project` | All of the unit and integration targets of each project. |
+
+If the caller gives no scope, find it yourself:
+
+1. Find the changed files with `git status --short`, or with `getBlastradius({ scope: "working" })`.
+2. Find the project of each changed file, and the test targets that cover it.
+3. Run the unit targets of those projects. Add an integration target only when the change is in the code of that integration.
+4. If there is no change, use `project`.
+
+Do not run more than the scope. Give the scope in the report.
 
 ## Find the Test Command
 
@@ -20,19 +44,21 @@ Do not guess the test command. Find it before you run a test.
    return await tools.code_context.detectProjects({});
    ```
 
-   The result gives the language and the directory of each project. It does not give a command. A workspace can have more than one project, for example a Rust crate and a TypeScript web app. Each project has its own test command, and you must run all of them.
+   The result gives the language and the directory of each project. It does not give a command. A workspace can have more than one project, for example a Rust crate and a TypeScript web app. Each project has its own test command. Run the command of each project in the scope.
+
+**Find the command of each project.** Follow "Project detection" in the `code-analyzing` skill. It gives the reference file of each language, and the files of the repository that give the real command. In this skill, "the reference file of the language" is that file.
 
 ## Unit Tests and Integration Tests
 
-- **Unit tests are fast, and they give coverage.** A unit test examines the logic of the code. It does not need an external system. Each test run includes all of the unit test targets.
-- **Integration tests can be slower.** They use real scenarios, for example a real model, a real database, or a real server. CI runs them. Run them yourself only when it is necessary, usually when your change is in that integration. Then select that integration target directly with the test tool of the platform. The reference file of the language tells how. If your change is not in the integration, let CI run these tests.
+- **Unit tests are fast, and they give coverage.** A unit test examines the logic of the code. It does not need an external system.
+- **Integration tests can be slower.** They use real scenarios, for example a real model, a real database, or a real server. CI runs them. Run them only when the scope has them. Select each integration target directly with the test tool of the platform. The reference file of the language tells how.
 
 ## Rules
 
 - All of the tests must pass. A partial pass is a failure.
-- Run the type check and linter for each project, treat errors as failed tests.
+- For each scope except named tests, run the type check and the linter of each project in the scope. Treat errors as failed tests.
 - Do not run the same tests again if the code did not change. The result is the same. This wastes time and tokens.
-- When tests fail, do work only on the failures. After each correction, run only the tests that failed. At the end, run the full suite one more time.
+- When tests fail, do work only on the failures. After each correction, run only the tests that failed. At the end, run the scope one more time.
 - Do not run tests in a loop to solve 'flaky tests'. Do not use `for i in {1..N}`, `--count=N`, or `--repeat`.
 - A skipped test is broken or it is dead. Correct a broken test. Delete a dead test. A skipped test is not acceptable.
 - Do not hide a warning. Do not use `#[allow(...)]`, `@suppress`, or `// eslint-disable`.
@@ -43,8 +69,8 @@ Do not guess the test command. Find it before you run a test.
 
 ## Process
 
-1. **Run the full test suite of each project one time.** Use the commands that you found in [Find the Test Command](#find-the-test-command). The full suite is all of the unit test targets. Add the integration targets that your change touches. CI runs all of them.
-2. **Run the type check and the linter of each project.** Make warnings into errors.
+1. **Run the tests of the [scope](#scope) one time.** Use the commands that you found in [Find the Test Command](#find-the-test-command).
+2. **Run the type check and the linter of each project in the scope**, except for named tests. Make warnings into errors.
 3. **Find the skipped tests and the ignored tests.** Correct or delete each one.
 4. **Make a list of the failures and the warnings** from the output of step 1. This list is your work. Do not run the suite again to make the list.
 5. **Correct each failure and each warning on the list.** Before you change code, find the cause:
@@ -55,18 +81,18 @@ Do not guess the test command. Find it before you run a test.
    return { source, callers };
    ```
 
-   If you change a shared symbol, use `getBlastradius({ file, symbol })` to find the tests in other locations that the change can break. After a correction, run only the tests that failed, one time. Do not run the full suite after each correction.
-6. **When the list is empty, run the full suite one last time.** If there are new failures, go to step 4 with only the new failures.
+   If you change a shared symbol, use `getBlastradius({ file, symbol })` to find the tests in other locations that the change can break. After a correction, run only the tests that failed, one time. Do not run the scope after each correction.
+6. **When the list is empty, run the scope one last time.** If there are new failures, go to step 4 with only the new failures.
 
 ## Report
 
-Give the result, `green`, `red`, or `stuck`. Then give each command that you ran, with its counts. For example, for a workspace with a Rust project and a TypeScript project:
+Give the result, `green`, `red`, or `stuck`, and the scope. Then give each command that you ran, with its counts. For example, for a workspace with a Rust project and a TypeScript project:
 
 ```
-green: cargo nextest run — 1284 passed, 0 failed, 0 skipped; cargo clippy --all-targets -- -D warnings clean; pnpm test — 212 passed, 0 failed, 0 skipped; tsc --noEmit clean
+green (unit): cargo nextest run — 1284 passed, 0 failed, 0 skipped; cargo clippy --all-targets -- -D warnings clean; pnpm test — 212 passed, 0 failed, 0 skipped; tsc --noEmit clean
 ```
 
-Report `green` only after a full run passes. If you ran only one test, or if the run stopped before the end, the result is not `green`. Say what you ran.
+Report `green` only after a full run of the scope passes. If the run stopped before the end, the result is not `green`. Say what you ran.
 
 Report `red` or `stuck` along with a list of specific failed tests.
 

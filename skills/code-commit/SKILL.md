@@ -1,5 +1,5 @@
 ---
-name: commit
+name: code-commit
 description: Use when the user says "commit", "save changes", or "check in", and after each step that works. Use this skill, not raw git commands.
 license: MIT OR Apache-2.0
 compatibility: Requires `git` on the system PATH, a writable Git working tree, and the `tools.shell` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
@@ -18,9 +18,11 @@ return await tools.shell.execute({ command: "git status --short" });
 
 ## Rules
 
-- Commit only the source that you intend to commit. Do not commit scratch files, temporary files, generated files, or build artifacts.
-- Commit all of the changed source on the branch. Do not miss a file.
-- If you are not sure about a file, do not commit it.
+- Commit only the changes that are related to the task. A changed file can be from a different task, from the user, or from a different agent. Read the diff of each changed file before you stage it.
+- Commit each change that the task made: the source, the tests, and the documents. Do not miss a file of the task.
+- Do not stage a change that is not related to the task. Do not revert it. Give it in the report.
+- If one file has changes for the task and other changes, do not split the file with an interactive command such as `git add -p`. Commit the file, and give the other changes in the report.
+- Do not commit scratch files, temporary files, generated files, or build artifacts.
 - Before you commit, look for sensitive data, for example keys and passwords.
 - If the project makes scratch files, add their patterns to `.gitignore`.
 
@@ -28,13 +30,14 @@ return await tools.shell.execute({ command: "git status --short" });
 
 - Do not force push.
 - Do not amend a commit that is pushed.
-- Do not commit directly to `main` or `master` unless the caller tells you to.
+- You can commit directly to `main` or `master`.
 
 ## Process
 
-1. Run `git status --short`. Stage the source and the tests. Do not stage scratch files.
-2. If the changes are for different purposes, make one commit for each purpose.
-3. Commit with a [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/#summary) message: `<type>(<scope>): <subject>`.
+1. Run `git status --short` and `git diff`. For each changed file, decide whether the change is related to the task.
+2. Stage only the files of the task, by name. Do not use `git add -A` or `git add .`.
+3. If the changes of the task are for different purposes, make one commit for each purpose.
+4. Commit with a [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/#summary) message: `<type>(<scope>): <subject>`.
 
 ## Report
 
@@ -56,11 +59,11 @@ If there is nothing to commit, say "nothing to commit". This is not an error.
 
 ### A pre-commit hook stops the commit
 
-A hook of the repository (husky, pre-commit, lefthook) rejected the change. Read the output of the hook. Correct the problem, stage the files again, and commit again. Do not use `--no-verify` unless the hook itself is broken.
+A hook of the repository (husky, pre-commit, lefthook) rejected the change. Read the output of the hook. Correct the problem in the files of the task only, stage those files again by name, and commit again. Do not use `--no-verify` unless the hook itself is broken.
 
 ```
-npx prettier --write .
-git add -A
+npx prettier --write src/auth/login.ts
+git add src/auth/login.ts
 git commit -m "<same message>"
 ```
 

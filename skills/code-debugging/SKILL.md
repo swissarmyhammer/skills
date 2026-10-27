@@ -1,165 +1,60 @@
 ---
 name: code-debugging
-description: Use when coding before fixing.
+description: Use when a test fails, a build fails, or the code does not do what it must do. Find the root cause before you change code.
+license: MIT OR Apache-2.0
 ---
 
-# Systematic Debugging
+# Debugging
 
-## Overview
+**Find the root cause before you change code. A change to a symptom is a failure.**
 
-**Core principle:** ALWAYS find root cause before attempting fixes. Symptom fixes are failure.
+Use this skill for each technical problem: a test failure, a bug, behavior that you did not expect, a performance problem, a build failure, or an integration problem. Use it also when the problem looks simple, when a fix looks obvious, and when a fix did not work.
 
-**Violating the letter of this process is violating the spirit of debugging.**
+Do the four phases in sequence. Complete each phase before you start the next phase.
 
+## Phase 1: Find the cause
 
-## When to Use
+1. **Read the error.** Read all of the error message, the warnings, and the stack trace. Write down the file, the line, and the error code.
+2. **Make the problem occur again.** Find the exact steps. If the problem does not occur each time, get more data. Do not guess, and do not run the test in a loop.
+3. **Examine the recent changes.** Read `git diff` and the recent commits. Look for new dependencies, configuration changes, and differences in the environment.
+4. **Trace the bad value back to its source.** Use the `code-analyzing` verbs:
+   - `getSymbol` gives the source of the function that fails.
+   - `getCallgraph({ symbol, direction: "inbound" })` and `getInboundCalls` give its callers.
+   - `getReferences` gives each use of the value.
 
-Use for ANY technical issue:
-- Test failures
-- Bugs in production
-- Unexpected behavior
-- Performance problems
-- Build failures
-- Integration issues
+   Go back through the callers until you find where the bad value starts. The fix goes there, not where the error shows.
+5. **In a system with many components, find the component that fails.** Examples are CI → build → signing, and API → service → database. At each boundary, log the data that goes in, the data that comes out, and the configuration. Run one time. Then examine only the component where the data becomes bad.
 
-**Use this ESPECIALLY when:**
-- Under time pressure (emergencies make guessing tempting)
-- "Just one quick fix" seems obvious
-- You've already tried multiple fixes
-- Previous fix didn't work
-- You don't fully understand the issue
+## Phase 2: Compare with code that works
 
-**Don't skip when:**
-- Issue seems simple (simple bugs have root causes too)
-- You're in a hurry (rushing guarantees rework)
-- Manager wants it fixed NOW (systematic is faster than thrashing)
+1. Find code in the same repository that is similar and that works. Use `searchSymbol` and `grepCode`.
+2. If you use a pattern, read all of the reference code. Do not read only a part of it.
+3. List each difference between the code that works and the code that fails. Do not ignore a small difference.
+4. Find what the code needs: other components, settings, configuration, and the environment.
 
-## The Four Phases
+## Phase 3: Make hypotheses
 
-You MUST complete each phase before proceeding to the next.
+1. Write one to three hypotheses. Write each one as: "X is the root cause, because Y". Make each one specific.
+2. For each hypothesis, look for code that shows that it is false: a caller, a branch, or a test that disagrees. Keep the hypotheses that survive.
+3. If no hypothesis survives, go back to Phase 1. If you do not understand a part, say "I do not understand X". Do not guess.
 
-### Phase 1: Root Cause Investigation
+## Phase 4: Fix the cause
 
-**BEFORE attempting ANY fix:**
+1. Write a test that fails because of the root cause. Follow the `code-tdd` skill.
+2. Make one change at the root cause. Do not make more than one change at a time.
+3. Run the test with the `code-test` skill. If the test fails, the hypothesis is false. Undo the change, and go back to Phase 3.
+4. If each fix shows a new problem in a different location, stop. The root cause is not found. Go back to Phase 1.
 
-1. **Read Error Messages Carefully**
-   - Don't skip past errors or warnings
-   - They often contain the exact solution
-   - Read stack traces completely
-   - Note line numbers, file paths, error codes
+## Stop signals
 
-2. **Reproduce Consistently**
-   - Can you trigger it reliably?
-   - What are the exact steps?
-   - Does it happen every time?
-   - If not reproducible → gather more data, don't guess
+If you think one of these, stop and go back to Phase 1:
 
-3. **Check Recent Changes**
-   - What changed that could cause this?
-   - Git diff, recent commits
-   - New dependencies, config changes
-   - Environmental differences
-
-4. **Gather Evidence in Multi-Component Systems**
-
-   **WHEN system has multiple components (CI → build → signing, API → service → database):**
-
-   **BEFORE proposing fixes, add diagnostic instrumentation:**
-   ```
-   For EACH component boundary:
-     - Log what data enters component
-     - Log what data exits component
-     - Verify environment/config propagation
-     - Check state at each layer
-
-   Run once to gather evidence showing WHERE it breaks
-   THEN analyze evidence to identify failing component
-   THEN investigate that specific component
-   ```
-
-   **Example (multi-layer system):**
-   ```bash
-   # Layer 1: Workflow
-   echo "=== Secrets available in workflow: ==="
-   echo "IDENTITY: $([ -n "${IDENTITY:-}" ] && echo SET || echo UNSET)"
-
-   # Layer 2: Build script
-   echo "=== Env vars in build script: ==="
-   printenv IDENTITY >/dev/null 2>&1 && echo "IDENTITY in environment" || echo "IDENTITY not in environment"
-
-   # Layer 3: Signing script
-   echo "=== Keychain state: ==="
-   security list-keychains
-   security find-identity -v
-
-   # Layer 4: Actual signing
-   codesign --sign "$IDENTITY" --verbose=4 "$APP"
-   ```
-
-   **This reveals:** Which layer fails (secrets → workflow ✓, workflow → build ✗)
-
-5. **Trace Data Flow**
-
-   **WHEN error is deep in call stack:**
-
-   See `root-cause-tracing.md` in this directory for the complete backward tracing technique.
-
-   **Quick version:**
-   - Where does bad value originate?
-   - What called this with bad value?
-   - Keep tracing up until you find the source
-   - Fix at source, not at symptom
-
-### Phase 2: Pattern Analysis
-
-**Find the pattern before fixing:**
-
-1. **Find Working Examples**
-   - Locate similar working code in same codebase
-   - What works that's similar to what's broken?
-
-2. **Compare Against References**
-   - If implementing pattern, read reference implementation COMPLETELY
-   - Don't skim - read every line
-   - Understand the pattern fully before applying
-
-3. **Identify Differences**
-   - What's different between working and broken?
-   - List every difference, however small
-   - Don't assume "that can't matter"
-
-4. **Understand Dependencies**
-   - What other components does this need?
-   - What settings, config, environment?
-   - What assumptions does it make?
-
-### Phase 3: Hypothesis
-
-**Scientific method:**
-
-1. **Form Single Hypothesis**
-   - State clearly: "I think X is the root cause because Y"
-   - Write it down
-   - Be specific, not vague
-
-2. **When You Don't Know**
-   - Say "I don't understand X"
-   - Don't pretend to know
-   - Ask for help
-   - Research more
-
-## Red Flags - STOP and Follow Process
-
-If you catch yourself thinking:
-- "Quick fix for now, investigate later"
-- "Just try changing X and see if it works"
-- "Add multiple changes, run tests"
-- "Skip the test, I'll manually verify"
-- "It's probably X, let me fix that"
-- "I don't fully understand but this might work"
-- "Pattern says X but I'll adapt it differently"
-- "Here are the main problems: [lists fixes without investigation]"
-- Proposing solutions before tracing data flow
-- **Each fix reveals new problem in different place**
-
-**ALL of these mean: STOP. Return to Phase 1.**
+- "A quick fix now, and I examine it later."
+- "I change X and look at the result."
+- "I make many changes, and then I run the tests."
+- "I do not need a test. I can examine it manually."
+- "It is probably X."
+- "I do not understand all of it, but this can work."
+- "The pattern does X, but I do it in a different way."
+- You list fixes before you trace the data.
+- Each fix shows a new problem in a different location.
