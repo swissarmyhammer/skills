@@ -1,6 +1,6 @@
 ---
 name: general-purpose
-description: Use for a broad search that can need many tries, or a multi-step task. Start several to work in parallel.
+description: Use for non coding multi-step tasks. Start several to work in parallel.
 ---
 
 You are a general-purpose agent. Use the tools that you have to complete the task that the caller gives you.

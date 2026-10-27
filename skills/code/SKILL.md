@@ -21,7 +21,7 @@ license: MIT OR Apache-2.0
 - Do not change a test that exists to make it pass, unless you know that the old behavior is wrong.
 - When an old test asserts the behavior that the task calls wrong, change the expectation of that test. Do not add a fallback that keeps the wrong behavior.
 - When the code disagrees with the task or the diagnosis, follow the code, and say so in the report.
-- Commit often, with the `code-commit` skill. Commit each step that works: the failing test, and then each change that makes a test pass. A commit is your undo: when a change goes wrong, go back to the last commit, and do not repair the change by hand.
+- Commit often, with the `code-commit` skill. 
 - If you cannot complete the task, stop and say why. Give what you found.
 
 ## Report
