@@ -30,7 +30,7 @@ If the caller gives no scope, find it yourself:
 1. Find the changed files with `git status --short`, or with `getBlastradius({ scope: "working" })`.
 2. Find the project of each changed file, and the test targets that cover it.
 3. Run the unit targets of those projects. Add an integration target only when the change is in the code of that integration.
-4. If there is no change, use `project`.
+4. If there is no change, run the unit targets of each project.
 
 Do not run more than the scope. Give the scope in the report.
 

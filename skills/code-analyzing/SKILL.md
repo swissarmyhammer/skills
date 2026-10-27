@@ -204,6 +204,9 @@ the file.
 
 ## Report
 
+Use this report when you answer a question about code. When you complete a
+change, use the report of the `code` skill.
+
 Report code as `grep -n` does: the file, the line number and the text of each
 line. Use the line numbers from the result. Do not count the lines yourself.
 
