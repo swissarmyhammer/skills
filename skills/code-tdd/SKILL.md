@@ -15,6 +15,15 @@ If you did not see the test fail, you do not know that it tests the correct thin
 - Use it for a new feature, a bug fix, a refactor, and a change of behavior.
 - Do not use it for documentation, configuration files, generated code, or a prototype that you will discard. Do not write a test that asserts documentation.
 
+
+## Unit vs Integration
+
+Unit tests are small, fast, and focused. An ideal unit test has a single assertion. Use them in TDD.
+
+Integration tests are larger, scenario driven tests involving real data, models, complex setups, and multiple assertion. Do not use them in TDD, use them in CI.
+
+Keep unit tests separated from integration tests in the code. This allows you a faster TDD cycle by focusing only on unit tests. 
+
 ## Run the tests
 
 Run the tests with the `code-test` skill, in its subagent. Thus the test output stays out of your context. Give it the scope:
