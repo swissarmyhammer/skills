@@ -16,6 +16,16 @@ If you did not see the test fail, you do not know that it tests the correct thin
 - Do not use it for documentation, configuration files, generated code, or a prototype that you will discard. Do not write a test that asserts documentation.
 
 
+## DO
+
+- Create small, fast unit tests with a single assertion
+- Use fixtures or test setup for shared test initialization
+
+## DO NOT
+
+- Create test that assert the contents of doc strings
+- Create tests that scan the source itself and assert on source strings
+
 ## Unit vs Integration
 
 Unit tests are small, fast, and focused. An ideal unit test has a single assertion. Use them in TDD.
