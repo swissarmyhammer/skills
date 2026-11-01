@@ -38,6 +38,8 @@ Use the tool whose configuration file the repository has, and obey that file:
 
 `swift format` and `swiftformat` are different programs. Keep `-s` on `swift format lint`. Without it, the command reports warnings but the exit code is 0.
 
+If no tool is configured, use Apple swift-format with the default configuration.
+
 ## Skipped tests
 
 Find and correct or delete each one:
