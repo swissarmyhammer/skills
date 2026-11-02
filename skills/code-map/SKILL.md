@@ -142,4 +142,3 @@ Wrote ARCHITECTURE.md
 - Each statement must come from a verb result. Do not guess.
 - An empty call graph is not a fact about the code. Say which verb gave nothing, and draw the flows from the results that you have.
 - For a workspace with many projects, show the workspace first, then the important projects.
-- Keep the file shorter than 500 lines.

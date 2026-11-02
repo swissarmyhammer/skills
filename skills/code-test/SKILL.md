@@ -1,14 +1,12 @@
 ---
 name: code-test
-description: Use when the user wants to run tests, or after a code change. Takes a scope (named tests, unit, integration, or project), or finds the scope from the change. Runs the tests and analyzes the results.
+description: Use when you need to run tests. Takes a scope (named tests, unit, integration, or project), or finds the scope from the change. Runs the tests and analyzes the results.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.shell` and `tools.code_context` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
 agent: tester
 ---
 
 # Test
-
-**Zero failures. Zero skipped tests. The build is clean, or it is broken.**
 
 ## Scope
 
@@ -86,15 +84,20 @@ Do not guess the test command. Find it before you run a test.
 
 ## Report
 
-Give the result, `green`, `red`, or `stuck`, and the scope. Then give each command that you ran, with its counts. For example, for a workspace with a Rust project and a TypeScript project:
+Report `green` only after a full run of the scope passes. If the run stopped before the end, the result is not `green`. 
 
+Report `red` along with a list of specific failed tests if tests fail.
+
+Report as `grep -n` does: the file, the line number, the test.
+
+- Write a line that matches or that you discuss as `file:line:text`.
+- Write a line that shows only the context as `file-line-text`.
+- Write `--` between two groups of lines that are not adjacent.
+- Put the lines in a fenced code block.
+
+```text
+<file_name>:<line_number>:<test name>:<message>
 ```
-green (unit): cargo nextest run — 1284 passed, 0 failed, 0 skipped; cargo clippy --all-targets -- -D warnings clean; pnpm test — 212 passed, 0 failed, 0 skipped; tsc --noEmit clean
-```
-
-Report `green` only after a full run of the scope passes. If the run stopped before the end, the result is not `green`. Say what you ran.
-
-Report `red` or `stuck` along with a list of specific failed tests.
 
 ## Troubleshooting
 

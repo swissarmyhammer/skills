@@ -1,6 +1,6 @@
 ---
 name: kanban
-description: Use to read or change the kanban board with the `tools.kanban` tool, for example to add, find, assign, move, or update a task. Tells how to use the tool.
+description: Use to read or change the kanban board to add, find, assign, move, or update a task. Tells how to use the tool.
 license: MIT OR Apache-2.0
 compatibility: Requires the `tools.kanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
 ---
@@ -11,8 +11,8 @@ How to use the `tools.kanban` tool.
 
 ## Tasks and subtasks
 
-- The board is the one record of the tasks for all agent sessions. Do not use TodoWrite, TaskCreate, or a different task tool.
-- A subtask is one line of a GFM checklist (`- [ ]` or `- [x]`) in the `body` of the task. There is no subtask API. Put the checklist in the body when you add the task, or change the body with `updateTask`.
+- The board is the one record of the tasks for all agent sessions, organized in columns, each containing tasks. Classic Kanban
+- A subtask is one line of a GFM checklist (`- [ ]` or `- [x]`) in the `body` of the task.
 
 ## Call the tool
 
@@ -34,11 +34,9 @@ return { board: r.data.board, errors: r.errors ?? [], warnings: r.extensions?.wa
 
 ## The board
 
-- The board is in the `.kanban/` folder at the top folder of the git worktree (`git rev-parse --show-toplevel`). Each worktree has its own board. Commit `.kanban/` with the code. Thus the task changes go on the branch of the code, and git merges the boards when it merges the branches.
+- The board is in the `.kanban/` folder at the top folder of the git worktree. Commit `.kanban/` with the code. Thus the task changes go on the branch of the code, and git merges the boards when it merges the branches.
+- If you are not in a git repo, your `.kanban/` will be in our session current working directory.
 - A query on a repo that has no board gives an empty board, and it writes no file. The first mutation makes the board, with the columns `todo`, `doing`, `review`, and `done`. The board name is the name of the folder.
-- A folder that is not in a git repo has no board. Each call then gives `NOT_A_REPO`. Tell the user.
-- A `.kanban/` folder of the old Rust kanban gives `INCOMPATIBLE_BOARD`. Do not change that folder. Tell the user to remove it. Remove it only when the user tells you to remove it.
-- `boards` does not show a related repo with a Rust `.kanban/` folder. The call continues, and the warning `BOARD_INCOMPATIBLE` names that repo. Only a call that names that board gives `INCOMPATIBLE_BOARD`.
 - A call names the current board, unless an input `board` field or a full `kanban://` URI names a different board.
 - Each session has its own actor. Your changes have your actor, so `undo` with no `txn` reverses only your work.
 
@@ -63,14 +61,14 @@ return r.data;
 {"docs":{"column":{"name":"To Do"},"title":"Write the docs"},"login":{"column":{"name":"To Do"},"progress":{"completed":0,"total":2},"tags":[{"name":"bug"}],"title":"Fix the login bug"}}
 ```
 
-- An `addTask` with no `assignees` assigns your actor, when your actor was on the board before the call.
+- An `addTask` with no `assignees` assigns starts a task unassigned.
 - Each `id` in a response is a full URI, for example `kanban://github.com/owner/repo/task/<ULID>`. Each task also has a `shortId`. When you name a task in text, write `^` and the `shortId`, for example `^rc9rb4g`. Copy the `shortId` from the response. Do not make a short form of the ULID yourself.
 
 ## Work with a task
 
 ### Get the next ready task
 
-`nextTask` gives the first ready task in board order: the column order, then the place in the column. A ready task is open, and each of its dependencies is done. Add a filter to choose the work.
+`nextTask` gives the first ready task in board. Add a filter to if needed.
 
 ```js
 const r = await tools.kanban({ query: `{ board { nextTask(filter: "#bug") { id title ready } } }` });
@@ -202,7 +200,7 @@ return { titles, prefix: prefix.errors[0].extensions.code };
 
 A task is blocked until each of its dependencies is done. A task is done when it is in the last column (the column with the highest `order`).
 
-- Put the dependencies in `dependsOn`. The input name `blockedBy` also works, but `dependsOn` is the correct name.
+- Put the dependencies in `dependsOn`. 
 - A dependency on a task of the same board can be each ref of the table above. A dependency on a task of a different repo must be the full `kanban://<board-key>/task/<ULID>` URI.
 - `blockedBy` in a response lists the dependencies that are not done.
 - A dependency that no loaded board has blocks the task, and `unresolvedDependsOn` shows its URI. The write gives a warning: `DEPENDENCY_BOARD_NOT_FOUND` for a board that the tool cannot find, or `DEPENDENCY_TASK_NOT_FOUND` for a task that a found board does not have.
@@ -406,7 +404,3 @@ return {
 ```json
 {"back":"A wrong task","deleted":["A wrong task"],"history":[{"ops":["undo"],"undone":false},{"ops":["addTask"],"undone":true}],"redo":["redo"],"undo":["undo"]}
 ```
-
-## Forgiving names
-
-The tool accepts a name that is close enough, for example `createTask`, `task_id`, `labels`, or `status`. It rewrites the name to the canonical name, and `extensions.rewrites` tells you the change. Use the canonical names of this skill: a name that is close to two names gives `AMBIGUOUS_NAME`. A removed parameter of the old Rust kanban (for example `project` or `due`) gives the warning `REMOVED_PARAMETER`, and the call ignores it.

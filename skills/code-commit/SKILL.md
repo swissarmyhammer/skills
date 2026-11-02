@@ -1,9 +1,7 @@
 ---
 name: code-commit
-description: Use when the user says "commit", "save changes", or "check in", and after each step that works. Use this skill, not raw git commands.
+description: Use to "commit" or "check in".
 license: MIT OR Apache-2.0
-compatibility: Requires `git` on the system PATH, a writable Git working tree, and the `tools.shell` verbs of a code-mode host such as FoundationModelsMultitool. The model calls them in the `runCode` tool.
-agent: committer
 ---
 
 # Commit
@@ -14,6 +12,14 @@ Run each git command with `tools.shell.execute`:
 
 ```js
 return await tools.shell.execute({ command: "git status --short" });
+```
+
+## Scope
+
+The caller gives the scope of the commit:
+
+```
+$ARGUMENTS
 ```
 
 ## Rules
