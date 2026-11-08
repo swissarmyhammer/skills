@@ -36,7 +36,7 @@ Once you are satisified a hypothesis is solving the task, proceed to double chec
 
 If you have a kanban tool, comment on the task with your progress.
 
-#### Double check
+#### Review
 
 Double check your work with another `coder` subagent. 
 The agent needs to know the task, and the changes made and answer:
@@ -55,7 +55,7 @@ If you have a kanban tool, comment on the task with your progress.
 
 If no hypothesis remains and you did not solve the task, report this. If you have a kanban tool, comment on the task with your failure.
 
-If a hypothesis did solve the task, note the task as done. If you have a kanban tool, move the task to the next column.
+If a hypothesis did solve the task, report that the task is complete. If you have a kanban tool, comment on the task with the result.
 
 ## DO
 

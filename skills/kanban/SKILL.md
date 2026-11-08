@@ -1,7 +1,6 @@
 ---
 name: kanban
 description: Use to read or change the kanban board to add, find, assign, move, or update a task. Tells how to use the tool.
-license: MIT OR Apache-2.0
 compatibility: Requires the `tools.kanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
 ---
 
@@ -11,8 +10,9 @@ How to use the `tools.kanban` tool.
 
 ## Tasks and subtasks
 
-- The board is the one record of the tasks for all agent sessions, organized in columns, each containing tasks. Classic Kanban
-- A subtask is one line of a GFM checklist (`- [ ]` or `- [x]`) in the `body` of the task.
+- The board is the one record of the tasks for all agent sessions. The board has columns, and each column has tasks. This is a classic Kanban board.
+- A subtask is one line of a GFM checklist (`- [ ]` or `- [x]`) in the `body` of the task. There is no subtask API.
+- The column of a task tells the state of its work. Keep each task in the column that agrees with the work. See [Choose the column](#choose-the-column).
 
 ## Call the tool
 
@@ -29,16 +29,19 @@ return { board: r.data.board, errors: r.errors ?? [], warnings: r.extensions?.wa
 
 - Each error has `extensions.code`, for example `NOT_FOUND`. The `message` tells you how to correct the call.
 - Read `extensions.warnings` after each call. A warning tells you that the call did the work in a different way than you asked. Each warning has a `message` and a `code`. The call is done, and its changes are written.
-- All mutation fields of one document are one transaction. `undo` reverses all of the transaction.
+- Each mutation takes one `input` argument, and `input` is required. A mutation with no field to give takes `input: {}`.
+- All mutation fields of one document are one transaction.
 - To learn the schema, query `__schema` or `__type`.
 
 ## The board
 
-- The board is in the `.kanban/` folder at the top folder of the git worktree. Commit `.kanban/` with the code. Thus the task changes go on the branch of the code, and git merges the boards when it merges the branches.
-- If you are not in a git repo, your `.kanban/` will be in our session current working directory.
+- The board is in the `.kanban/` folder at the top folder of the git worktree (`git rev-parse --show-toplevel`). Each worktree has its own board. Commit `.kanban/` with the code. Thus the task changes go on the branch of the code, and git merges the boards when it merges the branches.
+- Outside git, the board is in the nearest folder, from the working directory up, that has a `.kanban/` folder. When no folder has one, the first mutation makes `.kanban/` in the working directory.
 - A query on a repo that has no board gives an empty board, and it writes no file. The first mutation makes the board, with the columns `todo`, `doing`, `review`, and `done`. The board name is the name of the folder.
+- The warning `BOARD_IN_SUBFOLDER` tells you that the tool does not use a `.kanban/` in a subfolder of the repo. Tell the user to run `collectBoards`. The warning `BOARD_ID_SHARED` tells you that two folders have the same board ID, for example a copied folder. Tell the user.
+- A `.kanban/` folder of the old Rust kanban gives `INCOMPATIBLE_BOARD`. Do not change that folder. Tell the user to remove it. Remove it only when the user tells you to remove it.
 - A call names the current board, unless an input `board` field or a full `kanban://` URI names a different board.
-- Each session has its own actor. Your changes have your actor, so `undo` with no `txn` reverses only your work.
+- Each session has its own actor. Your changes have your actor. `{ viewer { actor { id } } }` gives the id of your actor.
 
 ## Add tasks
 
@@ -61,14 +64,15 @@ return r.data;
 {"docs":{"column":{"name":"To Do"},"title":"Write the docs"},"login":{"column":{"name":"To Do"},"progress":{"completed":0,"total":2},"tags":[{"name":"bug"}],"title":"Fix the login bug"}}
 ```
 
-- An `addTask` with no `assignees` assigns starts a task unassigned.
+- `addTask` takes `title`, `body`, `column`, `assignees`, `tags`, `dependsOn`, `priority`, `ordinal`, and `board`. Only `title` is required.
+- An `addTask` with no `assignees` assigns your actor, when your actor was on the board before the call. When your actor was not on the board, the task has no assignee.
 - Each `id` in a response is a full URI, for example `kanban://github.com/owner/repo/task/<ULID>`. Each task also has a `shortId`. When you name a task in text, write `^` and the `shortId`, for example `^rc9rb4g`. Copy the `shortId` from the response. Do not make a short form of the ULID yourself.
 
 ## Work with a task
 
 ### Get the next ready task
 
-`nextTask` gives the first ready task in board. Add a filter to if needed.
+`nextTask` gives the first ready task in board order: the column order, then the place in the column. A ready task is live and not done, and no dependency blocks it. Add a filter when you must choose the work. When no task is ready, `nextTask` is `null`.
 
 ```js
 const r = await tools.kanban({ query: `{ board { nextTask(filter: "#bug") { id title ready } } }` });
@@ -83,7 +87,7 @@ return { title: t.title, ready: t.ready };
 
 ### Assign and move a task
 
-There is no claim operation. Two agents can get the same task from `nextTask`. To take a task, assign your actor and move the task in one document. A comment with no `actor` has your actor as its `author`. Thus a comment also gives you your actor id.
+There is no claim operation. Two agents can get the same task from `nextTask`. To take a task, assign your actor, and move the task to the column for work that is in progress, in one document. On the default board, that column is `doing`. `assignTask` and `unassignTask` take the task `id` and one `actor`. Both fields are required, and the actor must be on the board. A comment with no `actor` has your actor as its `author`, and it puts your actor on the board. Thus a comment also gives you your actor id.
 
 ```js
 const t = (await tools.kanban({ query: `{ board { nextTask(filter: "#bug") { id } } }` })).data.board.nextTask;
@@ -109,7 +113,7 @@ return { column: moved.column.name, mine: moved.assignees.some(a => a.id === me)
 
 ### Read a task
 
-`task` gives the title, the body with its checklist, the column, and the comments.
+`task(id:)` gives one task: for example its title, its body with the checklist, its column, and its comments.
 
 ```js
 const r = await tools.kanban({
@@ -139,13 +143,52 @@ return r.data.updateTask.progress;
 {"completed":1,"total":2}
 ```
 
+- `updateTask` takes the task `id`, and the fields to change: `title`, `body`, `assignees`, `tags`, `dependsOn`, `column`, and `priority`. A field that you do not send does not change. A `null` clears the field.
+- `assignees`, `tags`, and `dependsOn` replace the full list.
+
 ### Add a comment
 
-`addComment` adds a comment to a task, as in [Assign and move a task](#assign-and-move-a-task). A comment with no `actor` has your actor as its `author`.
+`addComment` takes `task` and `body`, as in [Assign and move a task](#assign-and-move-a-task). A comment with no `actor` has your actor as its `author`.
+
+### Choose the column
+
+Each board can have different columns. Do not use a fixed list of columns, and do not move a task to "the next column" with no thought. Read the columns of the board. Then use your judgement to choose the column that agrees with the state of the work now.
+
+`columns` gives the columns in board order: the first column first, and the last column last. A task in the last column is done.
+
+```js
+const r = await tools.kanban({ query: `{ board { columns { name order trigger next } } }` });
+return { columns: r.data.board.columns.map(c => c.name) };
+```
+
+```json
+{"columns":["To Do","Doing","Review","Done"]}
+```
+
+To choose the column:
+
+1. Read the name of each column, and its `body` when the name is not sufficient. The body can tell what the column is for.
+2. Find the state of the work. Read the checklist, the comments, and the result of your work, for example the tests.
+3. Choose the column whose purpose agrees with that state. On the default board:
+   - `todo`: the work did not start.
+   - `doing`: an agent works on the task now.
+   - `review`: the work is complete, and it must be examined.
+   - `done`: the work is examined and accepted.
+4. When you are not sure, choose the column that tells less progress.
+
+Rules:
+
+- Do not move a task to a column that tells more progress than is true. For example, do not move a task to `review` when a subtask is not done or a test fails.
+- Do not skip a column whose purpose applies to the task. For example, do not move a task from `doing` to `done` when the board has a `review` column.
+- A task can move back. For example, when a review finds a problem, move the task back to the column for work in progress.
+- When you cannot continue the work, keep the task in its column. Add a comment that tells why the work stopped and what is necessary to continue.
+- When the reason for the move is not clear from the task, add a comment that tells why you moved it.
+- A column with a `trigger` starts that skill when a task goes into the column. When `next` is `true`, the task moves to the column after it when the skill ends. Before you move a task to such a column, make sure that the skill must run.
+- Use the slug or the name of a column that the board has. A column slug that no column has makes a new column. Make a new column only when the user tells you to.
 
 ### Move a task to a column
 
-`moveTask` moves a task to the column that you name. `completeTask` moves the task to the last column.
+`moveTask` takes the task `id` and a `column`. With no `before`, `after`, or `ordinal`, the task goes to the end of the column. `completeTask` takes only the task `id`, and moves the task to the end of the last column. Choose the column first, as in [Choose the column](#choose-the-column).
 
 ```js
 const r = await tools.kanban({ query: `mutation { moveTask(input: { id: "fix-the-login-bug", column: "review" }) { column { name } } }` });
@@ -155,6 +198,12 @@ return r.data.moveTask;
 ```json
 {"column":{"name":"Review"}}
 ```
+
+- A `before` or `after` task that is not in the column puts the task at the end of the column, and the response gives a warning.
+
+### Delete a task
+
+`deleteTask` takes the task `id`, and deletes the task. A list does not show a deleted task, and a dependency on it does not block. `undeleteTask` takes the task `id`, and makes the task live again.
 
 ## Task refs
 
@@ -198,11 +247,11 @@ return { titles, prefix: prefix.errors[0].extensions.code };
 
 ## Dependencies
 
-A task is blocked until each of its dependencies is done. A task is done when it is in the last column (the column with the highest `order`).
+A dependency blocks a task when it is not done, or when it leads back to the task through dependencies (a cycle). The tool ignores a dependency on a deleted task. A task is done when it is in the last column (the column with the highest `order`).
 
-- Put the dependencies in `dependsOn`. 
+- Put the dependencies in `dependsOn`. The input name `blockedBy` also works, but `dependsOn` is the correct name.
 - A dependency on a task of the same board can be each ref of the table above. A dependency on a task of a different repo must be the full `kanban://<board-key>/task/<ULID>` URI.
-- `blockedBy` in a response lists the dependencies that are not done.
+- `blockedBy` in a response lists the dependencies that block the task. A dependency that does not resolve is not in it.
 - A dependency that no loaded board has blocks the task, and `unresolvedDependsOn` shows its URI. The write gives a warning: `DEPENDENCY_BOARD_NOT_FOUND` for a board that the tool cannot find, or `DEPENDENCY_TASK_NOT_FOUND` for a task that a found board does not have.
 - A dependency that makes a cycle gives `DEPENDENCY_CYCLE`.
 
@@ -274,11 +323,11 @@ The tool calculates these tags. A filter uses them as `#READY`, `#DONE`, and so 
 
 | Tag | The task |
 |---|---|
-| `READY` | is open, and each of its dependencies is done. |
-| `BLOCKED` | has at least one dependency that is not done. |
+| `READY` | is live and not done, and no dependency blocks it. |
+| `BLOCKED` | is live, and a dependency that is not deleted is not done or leads back to the task. |
 | `CONFLICT` | has a conflict block in its body, from a merge of two body changes. |
-| `DELETED` | is deleted. A list shows a deleted task only when the filter names `#DELETED`. |
-| `DONE` | is in the last column. |
+| `DELETED` | is deleted. A list shows a deleted task only when the filter names `#DELETED`, or has a `^id` or `~task` atom. |
+| `DONE` | is live, and it is in the terminal column: the last column. |
 | `HIGH` | is in the first third of the open tasks, in board order. |
 | `MEDIUM` | is in the second third of the open tasks. |
 | `LOW` | is in the last third of the open tasks. |
@@ -305,6 +354,8 @@ BLOCKING is not a virtual tag: `#BLOCKING` is an ordinary tag filter. To find th
 
 - A list with no filter gives each task that is not deleted, also the done tasks. Use `!#DONE` for the open tasks.
 - A filter that does not parse gives `INVALID_FILTER`, with the position and a correct example.
+- `tasks` gives pages. A page has 10 tasks when you do not give `first`. To get all tasks, give a larger `first`, or read `pageInfo { hasNextPage endCursor }` and send `endCursor` as `after` for the next page. `totalCount` gives the number of tasks that match.
+- `searchTasks(query: "...")` finds tasks by their text. It also takes `filter` and `first`.
 
 ```js
 const login = (await tools.kanban({ query: `{ board { task(id: "fix-the-login-bug") { assignees { id } } } }` })).data.board.task;
@@ -335,7 +386,7 @@ return lists;
 
 A task has no priority field. The place of the task in its column is its priority. `HIGH`, `MEDIUM`, and `LOW` come from that place. To change the priority, move the task with `moveTask` and `before` or `after` a different task. Give only one of `before`, `after`, and `ordinal`: two of them give `CONFLICTING_PLACEMENT`.
 
-A `priority` input also moves the task in its column, and gives the warning `PRIORITY_IS_POSITION`:
+A `priority` input of `addTask` or `updateTask` also moves the task in its column, and gives the warning `PRIORITY_IS_POSITION`. `moveTask` has no `priority` input. The case of the value does not matter.
 
 | `priority` value | Move |
 |---|---|
@@ -360,7 +411,7 @@ return { warnings: r.extensions.warnings.map(w => w.code), todo: todo.data.board
 
 ## Tags
 
-- `tagTask` and `untagTask` add and remove tags. `addTask` and `updateTask` take a full `tags` list. A tag that the board does not have is made.
+- `tagTask` and `untagTask` take the task `id` and a `tags` list. They add and remove only these tags. `addTask` and `updateTask` take a full `tags` list. A tag that the board does not have is made.
 - A `#tag` in the body is also a tag. `untagTask` also removes it from the body.
 - `renameTag` with `from` and `to` renames a tag. The old name then points to the new tag.
 
@@ -378,29 +429,6 @@ return r.data;
 {"tagTask":{"tags":[{"name":"bug"},{"name":"release"}]},"untagTask":{"tags":[{"name":"release"}]}}
 ```
 
-## Undo and redo
+## Forgiving names
 
-- `undo` with no `txn` reverses your newest transaction that is not undone. Your actor is the actor of your session, so `undo` does not reverse the work of a different session.
-- `redo` reverses your newest `undo`.
-- `history` lists the transactions, newest first. To reverse a given transaction, give its `txn`: `undo(input: { txn: "<txn>" })`.
-- A later change to the same data gives `UNDO_CONFLICT`. Read the later transactions in the message before you use `force: true`.
-
-```js
-await tools.kanban({ query: `mutation { addTask(input: { title: "A wrong task" }) { title } }` });
-const undo = await tools.kanban({ query: `mutation { undo { ops } }` });
-const history = await tools.kanban({ query: `{ board { history(first: 2) { ops undone } } }` });
-const deleted = await tools.kanban({ query: `{ board { tasks(filter: "#DELETED") { nodes { title } } } }` });
-const redo = await tools.kanban({ query: `mutation { redo { ops } }` });
-const back = await tools.kanban({ query: `{ board { task(id: "a-wrong-task") { title } } }` });
-return {
-  undo: undo.data.undo.ops,
-  history: history.data.board.history,
-  deleted: deleted.data.board.tasks.nodes.map(t => t.title),
-  redo: redo.data.redo.ops,
-  back: back.data.board.task.title
-};
-```
-
-```json
-{"back":"A wrong task","deleted":["A wrong task"],"history":[{"ops":["undo"],"undone":false},{"ops":["addTask"],"undone":true}],"redo":["redo"],"undo":["undo"]}
-```
+The tool accepts a name that is close enough, for example `createTask`, `task_id`, `labels`, or `status`. It changes the name to the canonical name, and `extensions.rewrites` tells you the change. Use the canonical names of this skill: a name that is close to two names gives `AMBIGUOUS_NAME`. The tool removes a parameter of the old Rust kanban that it does not have (for example `project`, `due`, or `exclude_done`). The call continues, and a warning tells you what to use.
