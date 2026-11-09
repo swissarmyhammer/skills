@@ -20,6 +20,7 @@ The brief of each hypothesis coder must say:
 - "Post one short hypothesis, at most 20 lines: the cause, the file and function, the change you propose, and the one check that would prove it."
 {% if tools.kanban.enabled %}- "Do not read the other comments on the task before you post yours."
 {% endif %}
+
 Update the task with the three hypotheses. 
 
 {% if tools.kanban.enabled %}
