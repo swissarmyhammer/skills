@@ -14,11 +14,19 @@ Create one kanban task for this work. If the scope is a kanban task, use that ta
 
 Provide what you have learned to three `coder` subagents, each charged with independently developing a hypothesis on how to complete the task.
 
+The brief of each hypothesis coder must say:
+
+- "Use at most 15 tool calls. Do not change files, run the full test suite, or commit."
+- "Post one short hypothesis, at most 20 lines: the cause, the file and function, the change you propose, and the one check that would prove it."
+{% if tools.kanban.enabled %}- "Do not read the other comments on the task before you post yours."
+{% endif %}
 Update the task with the three hypotheses. 
 
 {% if tools.kanban.enabled %}
 Order each coder to put its hypothesis on the task with a comment, using the `addComment` call from the kanban skill.
 {% endif %}
+
+When all three are back, rank them as they are. Do not start other agents to check them. Start the implementer with the best one.
 
 ### Test hypotheses
 
