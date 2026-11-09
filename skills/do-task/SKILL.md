@@ -6,7 +6,7 @@ license: MIT OR Apache-2.0
 
 ## Scope
 
-The caller gives the scope of the task:
+The task is the user's prompt. When the caller gives a scope, it is in this block. An empty block means that the scope is the user's prompt alone.
 
 ```
 $ARGUMENTS
