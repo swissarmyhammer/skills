@@ -12,14 +12,16 @@ The caller gives the scope of the task:
 $ARGUMENTS
 ```
 
+{% if tools.kanban.enabled %}
 ## Kanban
 
-First, find out if you have a kanban tool. In the `runCode` tool, run `return Object.keys(tools);`. The result lists your tool groups.
+Load the `kanban` skill now, before you do other work. It tells you how to call the kanban tool.
 
-If the list has `kanban`, you have a kanban tool. Load the `kanban` skill now, before you do other work. Each step of this skill that starts with "If you have a kanban tool" applies to you, and the `kanban` skill tells you how to make those calls.
+Use the kanban board in each step of this skill.
 
-If the list has no `kanban`, skip each kanban step.
-
+{% endif %}
 ## Coding
 
-If this is a coding task read [code.md](references/code.md) and follow.
+If this is a coding task, follow these steps.
+
+{% include "references/code.md" %}

@@ -1,12 +1,12 @@
 ---
 name: kanban
 description: Use to read or change the kanban board to add, find, assign, move, or update a task. Tells how to use the tool.
-compatibility: Requires the `tools.kanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
+compatibility: Requires the `tools.kanban.runKanban` function of a code-mode host such as FoundationModelsMultitool, with the `KanbanTool` of FoundationModelsKanban. The model calls it in the `runCode` tool.
 ---
 
 # Kanban
 
-How to use the `tools.kanban` tool.
+How to use the `tools.kanban.runKanban` tool.
 
 ## Tasks and subtasks
 
@@ -16,10 +16,10 @@ How to use the `tools.kanban` tool.
 
 ## Call the tool
 
-In the `runCode` tool, call `tools.kanban({ query, variables })`. `query` is one GraphQL document. `variables` is an object, or a string that holds a JSON object. The result is the GraphQL response: `data`, `errors`, and `extensions`.
+In the `runCode` tool, call `tools.kanban.runKanban({ query, variables })`. `query` is one GraphQL document. `variables` is an object, or a string that holds a JSON object. The result is the GraphQL response: `data`, `errors`, and `extensions`.
 
 ```js
-const r = await tools.kanban({ query: `{ board { name summary { total ready done } } }` });
+const r = await tools.kanban.runKanban({ query: `{ board { name summary { total ready done } } }` });
 return { board: r.data.board, errors: r.errors ?? [], warnings: r.extensions?.warnings ?? [] };
 ```
 
@@ -48,7 +48,7 @@ return { board: r.data.board, errors: r.errors ?? [], warnings: r.extensions?.wa
 `addTask` puts a task at the end of the first column. Put the subtasks in the body as a checklist. The examples of this skill run in order on one board, so the later examples use these tasks.
 
 ```js
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation($checklist: String!) {
     login: addTask(input: { title: "Fix the login bug", tags: ["bug"], body: $checklist }) {
       title column { name } tags { name } progress { completed total }
@@ -75,7 +75,7 @@ return r.data;
 `nextTask` gives the first ready task in board order: the column order, then the place in the column. A ready task is live and not done, and no dependency blocks it. Add a filter when you must choose the work. When no task is ready, `nextTask` is `null`.
 
 ```js
-const r = await tools.kanban({ query: `{ board { nextTask(filter: "#bug") { id title ready } } }` });
+const r = await tools.kanban.runKanban({ query: `{ board { nextTask(filter: "#bug") { id title ready } } }` });
 const t = r.data.board.nextTask;
 if (!t) return { next: null };
 return { title: t.title, ready: t.ready };
@@ -90,13 +90,13 @@ return { title: t.title, ready: t.ready };
 There is no claim operation. Two agents can get the same task from `nextTask`. To take a task, assign your actor, and move the task to the column for work that is in progress, in one document. On the default board, that column is `doing`. `assignTask` and `unassignTask` take the task `id` and one `actor`. Both fields are required, and the actor must be on the board. A comment with no `actor` has your actor as its `author`, and it puts your actor on the board. Thus a comment also gives you your actor id.
 
 ```js
-const t = (await tools.kanban({ query: `{ board { nextTask(filter: "#bug") { id } } }` })).data.board.nextTask;
-const c = await tools.kanban({
+const t = (await tools.kanban.runKanban({ query: `{ board { nextTask(filter: "#bug") { id } } }` })).data.board.nextTask;
+const c = await tools.kanban.runKanban({
   query: `mutation($id: ID!) { addComment(input: { task: $id, body: "Picked up." }) { author { id } } }`,
   variables: { id: t.id }
 });
 const me = c.data.addComment.author.id;
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation($id: ID!, $me: ID!) {
     assignTask(input: { id: $id, actor: $me }) { title }
     moveTask(input: { id: $id, column: "doing" }) { column { name } assignees { id } }
@@ -116,7 +116,7 @@ return { column: moved.column.name, mine: moved.assignees.some(a => a.id === me)
 `task(id:)` gives one task: for example its title, its body with the checklist, its column, and its comments.
 
 ```js
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `{ board { task(id: "fix-the-login-bug") { title body column { name } comments { body } } } }`
 });
 return r.data.board.task;
@@ -131,8 +131,8 @@ return r.data.board.task;
 Change its `- [ ]` to `- [x]` in the body with `updateTask`. Keep all other text of the body. `body` is the full new text: the tool calculates the change.
 
 ```js
-const t = (await tools.kanban({ query: `{ board { task(id: "fix-the-login-bug") { id body } } }` })).data.board.task;
-const r = await tools.kanban({
+const t = (await tools.kanban.runKanban({ query: `{ board { task(id: "fix-the-login-bug") { id body } } }` })).data.board.task;
+const r = await tools.kanban.runKanban({
   query: `mutation($id: ID!, $body: String!) { updateTask(input: { id: $id, body: $body }) { progress { completed total } } }`,
   variables: { id: t.id, body: t.body.replace("- [ ] Find the cause", "- [x] Find the cause") }
 });
@@ -157,7 +157,7 @@ Each board can have different columns. Do not use a fixed list of columns, and d
 `columns` gives the columns in board order: the first column first, and the last column last. A task in the last column is done.
 
 ```js
-const r = await tools.kanban({ query: `{ board { columns { name order trigger next } } }` });
+const r = await tools.kanban.runKanban({ query: `{ board { columns { name order trigger next } } }` });
 return { columns: r.data.board.columns.map(c => c.name) };
 ```
 
@@ -191,7 +191,7 @@ Rules:
 `moveTask` takes the task `id` and a `column`. With no `before`, `after`, or `ordinal`, the task goes to the end of the column. `completeTask` takes only the task `id`, and moves the task to the end of the last column. Choose the column first, as in [Choose the column](#choose-the-column).
 
 ```js
-const r = await tools.kanban({ query: `mutation { moveTask(input: { id: "fix-the-login-bug", column: "review" }) { column { name } } }` });
+const r = await tools.kanban.runKanban({ query: `mutation { moveTask(input: { id: "fix-the-login-bug", column: "review" }) { column { name } } }` });
 return r.data.moveTask;
 ```
 
@@ -220,15 +220,15 @@ An input or an argument that takes a task accepts each of these refs:
 | A ULID prefix that only one task has | `01KT6SA49` |
 
 ```js
-const t = (await tools.kanban({ query: `{ board { task(id: "fix-the-login-bug") { id shortId } } }` })).data.board.task;
+const t = (await tools.kanban.runKanban({ query: `{ board { task(id: "fix-the-login-bug") { id shortId } } }` })).data.board.task;
 const ulid = t.id.split("/").pop();
 const refs = [t.id, ulid, t.shortId, "^" + t.shortId, "task/" + t.shortId, "fix-the-login-bug"];
 const titles = [];
 for (const ref of refs) {
-  const r = await tools.kanban({ query: `query($ref: ID!) { board { task(id: $ref) { title } } }`, variables: { ref } });
+  const r = await tools.kanban.runKanban({ query: `query($ref: ID!) { board { task(id: $ref) { title } } }`, variables: { ref } });
   titles.push(r.data.board.task.title);
 }
-const prefix = await tools.kanban({
+const prefix = await tools.kanban.runKanban({
   query: `query($ref: ID!) { board { task(id: $ref) { title } } }`,
   variables: { ref: ulid.slice(0, 2) }
 });
@@ -256,7 +256,7 @@ A dependency blocks a task when it is not done, or when it leads back to the tas
 - A dependency that makes a cycle gives `DEPENDENCY_CYCLE`.
 
 ```js
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation {
     addTask(input: {
       title: "Ship the release",
@@ -274,9 +274,9 @@ return { task: r.data.addTask, warnings: r.extensions.warnings.map(w => w.code) 
 A full task URL in the body is also a dependency. A task URL in a code block, in inline code, or in a heading is not a dependency.
 
 ```js
-const docs = (await tools.kanban({ query: `{ board { task(id: "write-the-docs") { id } } }` })).data.board.task;
+const docs = (await tools.kanban.runKanban({ query: `{ board { task(id: "write-the-docs") { id } } }` })).data.board.task;
 const body = "Do this after " + docs.id + " is done.\n\nThe example `" + docs.id + "` is not a dependency.";
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation($body: String!) { addTask(input: { title: "Announce the release", body: $body }) { dependsOn { title } } }`,
   variables: { body }
 });
@@ -290,8 +290,8 @@ return r.data.addTask;
 When the docs task is done, the announce task is ready. The ship task stays blocked, because its other dependency does not resolve. `blockedBy` is empty, so read `unresolvedDependsOn`.
 
 ```js
-await tools.kanban({ query: `mutation { moveTask(input: { id: "write-the-docs", column: "done" }) { title } }` });
-const r = await tools.kanban({
+await tools.kanban.runKanban({ query: `mutation { moveTask(input: { id: "write-the-docs", column: "done" }) { title } }` });
+const r = await tools.kanban.runKanban({
   query: `{ board {
     announce: task(id: "announce-the-release") { ready }
     ship: task(id: "ship-the-release") { ready blockedBy { title } unresolvedDependsOn }
@@ -307,7 +307,7 @@ return r.data.board;
 `updateTask` with `dependsOn` replaces the list. A dependency that the new list does not have is removed, also its URL in the body.
 
 ```js
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation { updateTask(input: { id: "ship-the-release", dependsOn: ["write-the-docs"] }) { ready dependsOn { title } unresolvedDependsOn } }`
 });
 return r.data.updateTask;
@@ -358,7 +358,7 @@ BLOCKING is not a virtual tag: `#BLOCKING` is an ordinary tag filter. To find th
 - `searchTasks(query: "...")` finds tasks by their text. It also takes `filter` and `first`.
 
 ```js
-const login = (await tools.kanban({ query: `{ board { task(id: "fix-the-login-bug") { assignees { id } } } }` })).data.board.task;
+const login = (await tools.kanban.runKanban({ query: `{ board { task(id: "fix-the-login-bug") { assignees { id } } } }` })).data.board.task;
 const filters = {
   ready: "#READY",
   done: "#DONE",
@@ -369,7 +369,7 @@ const filters = {
 };
 const lists = {};
 for (const [name, filter] of Object.entries(filters)) {
-  const r = await tools.kanban({
+  const r = await tools.kanban.runKanban({
     query: `query($filter: String!) { board { tasks(filter: $filter) { nodes { title } } } }`,
     variables: { filter }
   });
@@ -395,13 +395,13 @@ A `priority` input of `addTask` or `updateTask` also moves the task in its colum
 | `medium`, `normal`, `P2`, and each other value | no move |
 
 ```js
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation {
     moveTask(input: { id: "announce-the-release", column: "todo", before: "ship-the-release" }) { title }
     addTask(input: { title: "Fix the crash", tags: ["bug"], priority: "urgent" }) { title }
   }`
 });
-const todo = await tools.kanban({ query: `{ board { tasks(filter: "%todo") { nodes { title virtualTags } } } }` });
+const todo = await tools.kanban.runKanban({ query: `{ board { tasks(filter: "%todo") { nodes { title virtualTags } } } }` });
 return { warnings: r.extensions.warnings.map(w => w.code), todo: todo.data.board.tasks.nodes };
 ```
 
@@ -416,7 +416,7 @@ return { warnings: r.extensions.warnings.map(w => w.code), todo: todo.data.board
 - `renameTag` with `from` and `to` renames a tag. The old name then points to the new tag.
 
 ```js
-const r = await tools.kanban({
+const r = await tools.kanban.runKanban({
   query: `mutation {
     tagTask(input: { id: "fix-the-crash", tags: ["release"] }) { tags { name } }
     untagTask(input: { id: "fix-the-crash", tags: ["bug"] }) { tags { name } }

@@ -6,7 +6,9 @@
 Read the task from the caller. 
 A cause or a fix in the task, from the caller or from a diagnosis, is a hypothesis. Check it against the code before you use it.
 
-If you have a kanban tool, create a kanban task if needed. If you were provided a kanban task as the scope, do not create an additional kanban task.
+{% if tools.kanban.enabled %}
+Create one kanban task for this work. If the scope is a kanban task, use that task, and do not create another.
+{% endif %}
 
 ### Develop hypotheses
 
@@ -14,7 +16,9 @@ Provide what you have learned to three `coder` subagents, each charged with inde
 
 Update the task with the three hypotheses. 
 
-If you have a kanban tool, order the subagents to put their hypothesis on the task with a comment.
+{% if tools.kanban.enabled %}
+Order each coder to put its hypothesis on the task with a comment, using the `addComment` call from the kanban skill.
+{% endif %}
 
 ### Test hypotheses
 
@@ -24,7 +28,9 @@ Rank the provided hypotheses and state what order you will test them. Then work 
 
 Implement a hypothesis with a `coder` subagent.
 
-If you have a kanban tool, comment on the task with your progress.
+{% if tools.kanban.enabled %}
+Comment on the task with your progress.
+{% endif %}
 
 #### Test
 
@@ -34,7 +40,9 @@ If there are test failures, repair them with a `coder` subagent. Repeat until al
 
 Once you are satisified a hypothesis is solving the task, proceed to double check.
 
-If you have a kanban tool, comment on the task with your progress.
+{% if tools.kanban.enabled %}
+Comment on the task with your progress.
+{% endif %}
 
 #### Review
 
@@ -49,13 +57,15 @@ If you answer no to any of these, you need to either continue testing the hypoth
 
 If you answer yes to all, you are done, proceed to finalize.
 
-If you have a kanban tool, comment on the task with your progress.
+{% if tools.kanban.enabled %}
+Comment on the task with your progress.
+{% endif %}
 
 #### Finalize
 
-If no hypothesis remains and you did not solve the task, report this. If you have a kanban tool, comment on the task with your failure.
+If no hypothesis remains and you did not solve the task, report this.{% if tools.kanban.enabled %} Comment on the task with your failure.{% endif %}
 
-If a hypothesis did solve the task, report that the task is complete. If you have a kanban tool, comment on the task with the result.
+If a hypothesis did solve the task, report that the task is complete.{% if tools.kanban.enabled %} Comment on the task with the result.{% endif %}
 
 ## DO
 
