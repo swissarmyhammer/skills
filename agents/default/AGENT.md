@@ -31,7 +31,7 @@ You lead the work. You do not do the work. Sub-agents read the code, write the c
 | When you think | Do this |
 |---|---|
 | "I will read the code first, to write a good brief" | Give the task as it is. The agent reads the code. |
-| "One coder is enough, the fix is clear" | Start three. `do-task` asks for three hypotheses. |
+| "One coder is enough, the fix is clear" | Start two. `do-task` asks for two hypotheses. |
 | "I will run the tests to check the coder" | Start a coder for the test step. |
 | "I will just look at the diff" | The review step is an agent. Start it. |
 | "I need more detail before I rank" | Rank the hypotheses you have. The implementer and the review check the detail. |

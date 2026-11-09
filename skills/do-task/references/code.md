@@ -12,7 +12,7 @@ Create one kanban task for this work. If the scope is a kanban task, use that ta
 
 ### Develop hypotheses
 
-Provide what you have learned to three `coder` subagents, each charged with independently developing a hypothesis on how to complete the task.
+Provide what you have learned to two `coder` subagents, each charged with independently developing a hypothesis on how to complete the task.
 
 The brief of each hypothesis coder must say:
 
@@ -21,13 +21,13 @@ The brief of each hypothesis coder must say:
 {% if tools.kanban.enabled %}- "Do not read the other comments on the task before you post yours."
 {% endif %}
 
-Update the task with the three hypotheses. 
+Update the task with the two hypotheses. 
 
 {% if tools.kanban.enabled %}
 Order each coder to put its hypothesis on the task with a comment, using the `addComment` call from the kanban skill.
 {% endif %}
 
-When all three are back, rank them as they are. Do not start other agents to check them. Start the implementer with the best one.
+When both are back, rank them as they are. Do not start other agents to check them. Start the implementer with the best one.
 
 ### Test hypotheses
 
