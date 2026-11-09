@@ -12,21 +12,21 @@ Create one kanban task for this work. If the scope is a kanban task, use that ta
 
 ### Develop hypotheses
 
-Provide what you have learned to two `coder` subagents, each charged with independently developing a hypothesis on how to complete the task.
+Provide what you have learned to two `planner` subagents, each charged with independently developing a hypothesis and a plan to complete the task.
 
-The brief of each hypothesis coder must say:
+{% if tools.kanban.enabled %}
+The brief of each planner must say:
 
-- "Do not change files, run the full test suite, or commit."
-{% if tools.kanban.enabled %}- "Do not read the other comments on the task before you post yours."
+- "Do not read the other comments on the task before you post yours."
+
 {% endif %}
-
 Update the task with the two hypotheses. 
 
 {% if tools.kanban.enabled %}
-Order each coder to put its hypothesis on the task with a comment, using the `addComment` call from the kanban skill.
+Order each planner to put its hypothesis on the task with a comment, using the `addComment` call from the kanban skill.
 {% endif %}
 
-When both are back, rank them as they are. Do not start other agents to check them. Start the implementer with the best one.
+When both are back, rank them as they are. Do not start other agents to check them.
 
 ### Test hypotheses
 
@@ -34,7 +34,7 @@ Rank the provided hypotheses and state what order you will test them. Then work 
 
 #### Implement
 
-Implement a hypothesis with a `coder` subagent.
+Give the best plan to ONE `coder` subagent to implement, with its test.
 
 {% if tools.kanban.enabled %}
 Comment on the task with your progress.
