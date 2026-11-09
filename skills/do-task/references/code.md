@@ -16,8 +16,7 @@ Provide what you have learned to two `coder` subagents, each charged with indepe
 
 The brief of each hypothesis coder must say:
 
-- "Use at most 15 tool calls. Do not change files, run the full test suite, or commit."
-- "Post one short hypothesis, at most 20 lines: the cause, the file and function, the change you propose, and the one check that would prove it."
+- "Do not change files, run the full test suite, or commit."
 {% if tools.kanban.enabled %}- "Do not read the other comments on the task before you post yours."
 {% endif %}
 
