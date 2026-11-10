@@ -34,6 +34,20 @@ return { board: r.data.board, errors: r.errors ?? [], warnings: r.extensions?.wa
   ```
 
   The short examples below leave it out. Add it in your own calls.
+- Give a long Markdown body, such as a plan or a report, in `variables`, and build it as an array of lines joined with `"\n"`. Do not put it in one template literal: the backticks and quotes of the Markdown break the JavaScript.
+
+  ```js
+  const body = [
+    "## Plan",
+    "- Change `Query.add_deferred_loading` in `django/db/models/sql/query.py`.",
+  ].join("\n");
+  const r = await tools.kanban.runKanban({
+    query: `mutation($task: ID!, $body: String!) { addComment(input: { task: $task, body: $body }) { id } }`,
+    variables: { task: "fix-the-login-bug", body },
+  });
+  if (r.errors?.length) return { errors: r.errors };
+  return r.data.addComment;
+  ```
 - Each error has `extensions.code`, for example `NOT_FOUND`. The `message` tells you how to correct the call.
 - Read `extensions.warnings` after each call. A warning tells you that the call did the work in a different way than you asked. Each warning has a `message` and a `code`. The call is done, and its changes are written.
 - Each mutation takes one `input` argument, and `input` is required. A mutation with no field to give takes `input: {}`.
