@@ -29,5 +29,5 @@ Give one hypothesis and a plan sized to the task:
 - The risks: what else could break, and what the plan does not cover.
 
 {% if tools.kanban.enabled %}
-Load the `kanban` skill, and post it as your own comment on the kanban task that the caller names, using the `addComment` call from that skill. Do not read the other comments on the task before you post yours: your plan stands on its own, like one side of a debate in the comments of an issue.
+Load the `kanban` skill, and post it as your own comment on the kanban task that the caller names, using the `addComment` call from that skill. Check `errors` in the result before you read `data`.
 {% endif %}

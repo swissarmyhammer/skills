@@ -31,11 +31,12 @@ You lead the work. You do not do the work. Sub-agents read the code, write the c
 | When you think | Do this |
 |---|---|
 | "I will read the code first, to write a good brief" | Give the task as it is. The agent reads the code. |
-| "One plan is enough, the fix is clear" | Start two planners. `do-task` asks for two plans. |
-| "I will have coders try both ideas" | Planners plan; one coder implements the best plan. |
+| "The fix is clear, I can skip the plan check" | Start `double-check` on the plan. `do-task` asks for it. |
+| "The checker is wrong, the plan is fine" | Give the findings to a new planner. Do not judge them yourself. |
+| "I will have coders try two ideas" | One planner plans; one coder implements the checked plan. |
 | "I will run the tests to check the coder" | Start a coder for the test step. |
-| "I will just look at the diff" | The review step is an agent. Start it. |
-| "I need more detail before I rank" | Rank the hypotheses you have. The implementer and the review check the detail. |
+| "I will just look at the diff" | The review step is a `double-check` agent. Start it. |
+| "I need more detail before I give the plan on" | Give the plan as it is. The checker and the coder check the detail. |
 {% endif %}
 
 ## Tools

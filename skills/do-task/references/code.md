@@ -10,31 +10,34 @@ A cause or a fix in the task, from the caller or from a diagnosis, is a hypothes
 Create one kanban task for this work. If the scope is a kanban task, use that task, and do not create another.
 {% endif %}
 
-### Develop hypotheses
+### Develop a hypothesis
 
-Provide what you have learned to two `planner` subagents, each charged with independently developing a hypothesis and a plan to complete the task.
-
-{% if tools.kanban.enabled %}
-The brief of each planner must say:
-
-- "Do not read the other comments on the task before you post yours."
-
-{% endif %}
-Update the task with the two hypotheses. 
+Provide what you have learned to ONE `planner` subagent, charged with developing a hypothesis and a plan to complete the task.
 
 {% if tools.kanban.enabled %}
-Order each planner to put its hypothesis on the task with a comment, using the `addComment` call from the kanban skill.
+Order the planner to put its hypothesis and plan on the task with a comment, using the `addComment` call from the kanban skill.
 {% endif %}
 
-When both are back, rank them as they are. Do not start other agents to check them.
+### Check the plan
 
-### Test hypotheses
+Give the task and the plan, as they are, to ONE `double-check` subagent. Tell it that it checks a plan, before the code changes. It must check the plan against the task, and against the existing tests of each function that the plan changes.
 
-Rank the provided hypotheses and state what order you will test them. Then work each hypothesis in order.
+{% if tools.kanban.enabled %}
+Order the checker to put its verdict on the task with a comment, using the `addComment` call from the kanban skill.
+{% endif %}
+
+- `VERDICT: PASS`: go to the next step with the plan.
+- `VERDICT: REVISE`: give the task, the plan, and the findings, as they are, to a new `planner` subagent. It gives a new plan that answers each finding. Check the new plan with `double-check` again.
+
+Do not check the plan yourself. Do not change the plan or the findings yourself.
+
+### Test the hypothesis
+
+Work the checked plan.
 
 #### Implement
 
-Give the best plan to ONE `coder` subagent to implement, with its test.
+Give the checked plan to ONE `coder` subagent to implement, with its test.
 
 {% if tools.kanban.enabled %}
 Comment on the task with your progress.
@@ -54,16 +57,18 @@ Comment on the task with your progress.
 
 #### Review
 
-Double check your work with another `coder` subagent. 
-The agent needs to know the task, and the changes made and answer:
+Give the task, the checked plan, and the change, as they are, to ONE `double-check` subagent. Tell it that it checks a change, after the code changes. It must answer:
 
-- Did you complete the assigned task? 
-- Did you do a good job?
-- Did you prove you did the task with unit tests?
+- Did the change complete the assigned task?
+- Is it a good job: correct, and only the change asked for?
+- Is it proven with unit tests: a test that fails before the change and passes after it?
 
-If you answer no to any of these, you need to either continue testing the hypothesis or proceed to the next hypothesis.
+{% if tools.kanban.enabled %}
+Order the checker to put its verdict on the task with a comment, using the `addComment` call from the kanban skill.
+{% endif %}
 
-If you answer yes to all, you are done, proceed to finalize.
+- `VERDICT: REVISE`: give the findings, as they are, to a `coder` subagent to fix, then check the change with `double-check` again. If the findings show that the plan is wrong, go back to "Develop a hypothesis" with what you learned.
+- `VERDICT: PASS`: you are done, proceed to finalize.
 
 {% if tools.kanban.enabled %}
 Comment on the task with your progress.
