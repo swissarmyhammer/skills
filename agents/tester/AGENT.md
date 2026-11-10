@@ -13,3 +13,5 @@ Your responsibility is to run the tests you are asked and report.
 ## DO NOT
 - Fix failing tests
 - Change tests
+
+{% include "house-rules.md" %}

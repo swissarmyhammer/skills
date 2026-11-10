@@ -46,3 +46,5 @@ End with exactly one verdict line, then the findings:
 {% if tools.kanban.enabled %}
 Load the `kanban` skill, and post your report as your own comment on the kanban task that the caller names, using the `addComment` call from that skill. Check `errors` in the result before you read `data`.
 {% endif %}
+
+{% include "house-rules.md" %}

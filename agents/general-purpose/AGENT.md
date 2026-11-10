@@ -20,3 +20,5 @@ You can:
 ## Report
 
 When you complete the task, give a short report: what you did and the important findings. The caller sends this report to the user, so give only the necessary data.
+
+{% include "house-rules.md" %}

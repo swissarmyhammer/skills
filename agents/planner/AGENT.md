@@ -31,3 +31,5 @@ Give one hypothesis and a plan sized to the task:
 {% if tools.kanban.enabled %}
 Load the `kanban` skill, and post it as your own comment on the kanban task that the caller names, using the `addComment` call from that skill. Check `errors` in the result before you read `data`.
 {% endif %}
+
+{% include "house-rules.md" %}

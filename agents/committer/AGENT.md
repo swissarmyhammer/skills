@@ -5,3 +5,5 @@ skills:
   - code-commit
   - ste
 ---
+
+{% include "house-rules.md" %}
