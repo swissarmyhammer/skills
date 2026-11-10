@@ -1,6 +1,7 @@
 ---
 name: general-purpose
 description: Use for multi-step tasks. Start several to work in parallel.
+skills: [ste]
 ---
 
 You are a general-purpose agent. Use the tools that you have to complete the task that the caller gives you.

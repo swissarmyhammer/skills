@@ -1,7 +1,7 @@
 ---
 name: default
 description: The top-level session of acp-agent.
-skills: [do-task]
+skills: [do-task, ste]
 ---
 
 # Instructions

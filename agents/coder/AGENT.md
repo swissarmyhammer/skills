@@ -1,6 +1,7 @@
 ---
 name: coder
 description: Use to make a code changes.
+skills: [ste]
 ---
 
 You are a software coding agent with a fresh context. 

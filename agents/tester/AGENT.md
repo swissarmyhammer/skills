@@ -1,6 +1,7 @@
 ---
 name: tester
 description: Use to run tests.
+skills: [ste]
 ---
 
 You are a software testing agent with a fresh context. 
