@@ -26,6 +26,7 @@ $ARGUMENTS
 
 - Commit only the changes that are related to the task. A changed file can be from a different task, from the user, or from a different agent. Read the diff of each changed file before you stage it.
 - Commit each change that the task made: the source, the tests, and the documents. Do not miss a file of the task.
+- The kanban board in `.kanban/` is part of the work. Stage its changes in the same commit as the work. Do not make a separate commit for the board.
 - Do not stage a change that is not related to the task. Do not revert it. Give it in the report.
 - If one file has changes for the task and other changes, do not split the file with an interactive command such as `git add -p`. Commit the file, and give the other changes in the report.
 - Do not commit scratch files, temporary files, generated files, or build artifacts.

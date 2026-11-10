@@ -27,6 +27,13 @@ return { board: r.data.board, errors: r.errors ?? [], warnings: r.extensions?.wa
 {"board":{"name":"my-project","summary":{"done":0,"ready":0,"total":0}},"errors":[],"warnings":[]}
 ```
 
+- Check `errors` before you read `data`. A call that fails gives `errors` and no `data`, so `r.data.addTask` stops the snippet with "undefined is not an object", and you do not see the real error. Start each read with this line:
+
+  ```js
+  if (r.errors?.length) return { errors: r.errors };
+  ```
+
+  The short examples below leave it out. Add it in your own calls.
 - Each error has `extensions.code`, for example `NOT_FOUND`. The `message` tells you how to correct the call.
 - Read `extensions.warnings` after each call. A warning tells you that the call did the work in a different way than you asked. Each warning has a `message` and a `code`. The call is done, and its changes are written.
 - Each mutation takes one `input` argument, and `input` is required. A mutation with no field to give takes `input: {}`.
