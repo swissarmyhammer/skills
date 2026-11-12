@@ -80,6 +80,8 @@ If no hypothesis remains and you did not solve the task, report this.{% if tools
 
 If a hypothesis did solve the task, report that the task is complete.{% if tools.kanban.enabled %} Comment on the task with the result.{% endif %}
 
+{% if tools.kanban.enabled %}Finish the board first: the last comment, and the move of the task to done. Then make the final commit with the `committer` agent, with the code, the tests and `.kanban/` together. Do not start a second committer for `.kanban/` only.{% else %}Then make the final commit with the `committer` agent.{% endif %}
+
 ## DO
 
 - Focus on only the change asked for.
