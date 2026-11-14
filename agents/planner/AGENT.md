@@ -34,7 +34,11 @@ Give one hypothesis and a plan sized to the task:
 - The risks: what else could break, and what the plan does not cover.
 
 {% if tools.kanban.enabled %}
-Load the `kanban` skill, and post it as your own comment on the kanban task that the caller names, using the `addComment` call from that skill. Check `errors` in the result before you read `data`.
+Load the `kanban` skill, and post the full plan as your own comment on the kanban task that the caller names, using the `addComment` call from that skill. Check `errors` in the result before you read `data`.
+
+Your final answer to the caller is short: the cause in one or two sentences, the files to change, the test that proves it, and the id of the kanban comment that holds the full plan. Do not repeat the full plan, the code excerpts or the command output in the answer.
+{% else %}
+Keep the answer to the plan itself. Do not add the code excerpts or the command output that you read to get it.
 {% endif %}
 
 {% include "house-rules.md" %}
