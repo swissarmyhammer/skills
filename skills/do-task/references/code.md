@@ -41,6 +41,8 @@ Work the checked plan.
 
 Give the checked plan to ONE `coder` subagent to implement, with its test.
 
+Then look at the change on disk (`git status`, `git diff`, or the commit of the coder). If the source did not change, the coder did not do the work: give the checked plan to a new `coder`. Do not test a change that is not there.
+
 {% if tools.kanban.enabled %}
 Comment on the task with your progress.
 {% endif %}
@@ -50,6 +52,8 @@ Comment on the task with your progress.
 This is when you verify that you didn't break anything by running all the tests looking for reression.
 
 If there are test failures, repair them with a `coder` subagent. Repeat until all tests are passing.
+
+A failure that was there before the change (the tester lists it apart) is not yours to repair, and it does not stop the task. Go on to Review.
 
 Once you are satisified a hypothesis is solving the task, proceed to double check.
 

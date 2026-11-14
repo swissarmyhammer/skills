@@ -15,7 +15,7 @@ These rules are for every agent.
 
 ### Tests
 
-- If the tests of the changed module pass and a failure comes from the test setup (the runner, the environment, a missing package), do not debug the setup. Report the failure and stop.
+- If the tests of the changed module pass and a failure comes from the test setup (the runner, the environment, a missing package), do not debug the setup. Report it as a failure that was there before. It does not stop the task: the caller goes on with its next step.
 
 ### Files
 
