@@ -29,7 +29,7 @@ Order the checker to put its verdict on the task with a comment, using the `addC
 {% endif %}
 
 - `VERDICT: PASS`: go to the next step with the plan.
-- `VERDICT: REVISE`: give the task, the plan, and the findings, as they are, to a new `planner` subagent. It gives a new plan that answers each finding. Check the new plan with `double-check` again.
+- `VERDICT: REVISE`: give the task, the plan, and the findings, as they are, to a new `planner` subagent. It gives a new plan that answers each finding. Check the new plan with `double-check` again. Do this at most two times. After the second `REVISE` of the plan, go to the next step with the last plan, and give its findings to the coder as they are.
 
 Do not check the plan yourself. Do not change the plan or the findings yourself.
 

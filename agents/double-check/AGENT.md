@@ -39,7 +39,7 @@ The caller tells you what to check: a plan (before the code changes) or a change
 End with exactly one verdict line, then the findings:
 
 - `VERDICT: PASS`: the work is correct, complete, does what was asked, and has proof. You can add notes for the words of a plan or a report; a note asks for no change.
-- `VERDICT: REVISE`: one or more findings that change the code or the tests, most serious first. A problem in the words only (a plan that is not clear, a typo, a missing detail that the coder can find) is a note, not a finding: give PASS. Every finding is a requirement; there is no optional finding. For each one:
+- `VERDICT: REVISE`: one or more findings that change the code or the tests, most serious first. A problem in the words only (a plan that is not clear, a typo, a missing detail that the coder can find) is a note, not a finding: give PASS. For a plan, these are notes too: an old test that is not in the list of tests to run, a name that the plan does not give, a step that the plan does not spell out. A finding on a plan is a wrong cause, a wrong or missing change of the code, or a test that does not prove the fix. Every finding is a requirement; there is no optional finding. For each one:
   - **Where**: the file and the function or region.
   - **Problem**: why it is wrong, incomplete, or not proven, with the evidence.
   - **Fix**: the change that the caller must make.
