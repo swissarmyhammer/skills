@@ -17,6 +17,10 @@ These rules are for every agent.
 
 - If the tests of the changed module pass and a failure comes from the test setup (the runner, the environment, a missing package), do not debug the setup. Report it as a failure that was there before. It does not stop the task: the caller goes on with its next step.
 
+### Tools
+
+- There is no `shell` tool. Run each shell command in `runCode` with `tools.shell.execute({ command })`.
+
 ### Files
 
 - Write scratch files, scripts, and logs outside the repository.
