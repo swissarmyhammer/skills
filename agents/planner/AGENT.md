@@ -16,6 +16,8 @@ You are a planning agent with a fresh context. You read the code and you plan; y
   - Does it follow the convention of the code base for the same kind of change? Find how the sibling code does it, for example how the other options of the same class report a misuse (a system check, a warning, or an exception).
   - Look in the git history for an existing fix of the same problem (`git log --all --oneline --grep=<ticket or key word>`, `git log -S <name>`). If one exists, follow it.
   - Keep no old behavior that the task removes. For each difference from the proposed code, give the reason and the evidence.
+- List the edge cases that the task implies, not only the example in the task. For each one, say what the fixed code gives: no value set (`None`, empty, missing key), the plural or other forms of a name, every field of a repr or a message, and the other callers of the changed function. Read the existing tests of the changed function for the cases they pin.
+- Plan a test for each edge case that the change touches, not only for the example in the task. A test that checks only your own example does not prove the fix.
 
 ## DO NOT
 
