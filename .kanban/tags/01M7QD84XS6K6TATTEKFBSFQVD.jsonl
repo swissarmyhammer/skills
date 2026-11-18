@@ -1,0 +1,1 @@
+{"id":"01M7QD84XS4HQB3MF63VJF3T98","timestamp":"2026-11-18T13:23:58.521824Z","op":"create","item_id":"01M7QD84XS6K6TATTEKFBSFQVD","forward_patch":"--- original\n+++ modified\n@@ -0,0 +1,2 @@\n+color: fbca04\n+tag_name: agents\n","reverse_patch":"--- original\n+++ modified\n@@ -1,2 +0,0 @@\n-color: fbca04\n-tag_name: agents\n","transaction_id":null}
