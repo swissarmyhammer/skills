@@ -38,8 +38,24 @@ comments:
     - evidence: 1 file — agents/default/AGENT.md (`skills: [do-task, ste, sessions]`); no skills/sessions/; unknownSkill is a skipped warning (AgentSkillsPreload.swift:42-46, :63-70; SessionAgentComposition.swift:146-149)
     - next: /review. The two manual acp-agent criteria need a manual run after ^e46cb97 and ^zx4k6r4 ship.
   timestamp: 2026-11-18T13:25:35.898202+00:00
-position_column: doing
-position_ordinal: '80'
+- actor: claude-code
+  id: 01m7qdc1pw9yem29mfb0d1zww5
+  text: |-
+    ### review — clean
+    - evidence: `review sha HEAD~1..HEAD` (commit 036c882). Counts: 0 findings, 0 confirmed, 0 refuted. No validator matches `agents/default/AGENT.md`, so the engine reviewed 0 files. The engine ignored 4 `.kanban/` files by `.reviewignore`. The two manual `acp-agent` acceptance criteria cannot run in this repository. They are not a review finding.
+    - next: The task moves to `done`.
+  timestamp: 2026-11-18T13:26:06.300232+00:00
+- actor: claude-code
+  id: 01m7qdc9jmghfrd23k7nzjfg9f
+  text: |-
+    ### finish iteration 1 — clean
+    - implement: changed — 1 file (agents/default/AGENT.md)
+    - test: no test suite in this repository; no test ran
+    - commit: 036c882
+    - review: clean — 0 findings (no validator matched AGENT.md)
+  timestamp: 2026-11-18T13:26:14.356512+00:00
+position_column: done
+position_ordinal: '8280'
 title: 'agents(default): load the built-in `sessions` skill at the start of a root session'
 ---
 ## Goal
