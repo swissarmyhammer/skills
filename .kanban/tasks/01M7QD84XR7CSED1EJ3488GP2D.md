@@ -54,6 +54,15 @@ comments:
     - commit: 036c882
     - review: clean — 0 findings (no validator matched AGENT.md)
   timestamp: 2026-11-18T13:26:14.356512+00:00
+- actor: claude-code
+  id: 01m7qfhcqm8nrcjrymmaz43xsy
+  text: |-
+    ### verify after dependencies — partial
+    - ^zx4k6r4 is on origin: FoundationModelsACPAgent origin/main = bdc0a7c. Multitool origin/main has Resources/skills/sessions/SKILL.md.
+    - `acp-agent doctor --json` (debug build at bdc0a7c, new folder): exit 0, no warning. "the skills defaults layer" is ok, and that folder holds `sessions`.
+    - ACPAgent `swift test --filter 'AgentCompositionTests|SettingsFoldersTests'`: 31 tests passed. This includes the test that `sessions` resolves from the `.defaults` layer.
+    - Not run: the two manual acp-agent session tests. A CLI session needs the live model (mlx-community/Qwen3.8-27B-8bit, a 27.5 GB download that is not in the cache). The stub model is only for tests. `doctor` does not check the `skills:` key of an agent. The user must approve the download first.
+  timestamp: 2026-11-18T14:03:58.580913+00:00
 position_column: done
 position_ordinal: '8280'
 title: 'agents(default): load the built-in `sessions` skill at the start of a root session'
